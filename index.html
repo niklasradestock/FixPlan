@@ -1,0 +1,4875 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FixPlan Prototype</title>
+  <meta name="description" content="Klickbarer FixPlan Prototyp mit Projektfunktionen, Nutzerfunktionen und persönlichem Workspace." />
+  <style>
+:root {
+  --brand: #0f87b5;
+  --brand-dark: #08749f;
+  --brand-soft: #e9f6fb;
+  --accent: #79b6ee;
+  --accent-soft: #d8ebff;
+  --bg: #f4f7fb;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --line: #d7dde7;
+  --line-dark: #aeb8c6;
+  --text: #27313f;
+  --muted: #6d7682;
+  --shadow: 0 18px 48px rgba(21, 34, 50, 0.12);
+  --shadow-soft: 0 8px 22px rgba(21, 34, 50, 0.08);
+  --radius-xl: 28px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --sidebar-width: 272px;
+  --topbar-height: 92px;
+  --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  min-width: 1180px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 26px 20px;
+  background: linear-gradient(180deg, var(--brand), var(--brand-dark));
+  color: #fff;
+  box-shadow: 8px 0 30px rgba(10, 108, 149, 0.18);
+}
+
+.project-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 2px 4px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.project-title {
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.project-toggle {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 20px;
+}
+
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.88);
+  text-align: left;
+  font-size: 20px;
+  font-weight: 500;
+  transition: 160ms ease;
+}
+
+.nav-item:hover,
+.nav-item.is-active {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  transform: translateX(3px);
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  opacity: 0.94;
+}
+
+.nav-label {
+  display: inline-block;
+  line-height: 1.15;
+  white-space: normal;
+}
+
+.nav-item.is-multiline {
+  align-items: flex-start;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.nav-item.is-multiline .nav-icon {
+  margin-top: 2px;
+}
+
+.nav-item.is-multiline .nav-label {
+  font-size: 18px;
+  line-height: 1.12;
+}
+
+
+.sidebar-context-label {
+  margin: -8px 4px 14px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.user-switcher {
+  margin-bottom: 24px;
+  padding: 2px 4px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.user-name {
+  font-size: 24px;
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: 0.1px;
+}
+
+.user-subtitle {
+  margin-top: 7px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.main-area {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: var(--topbar-height) 1fr;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: var(--topbar-height);
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto minmax(390px, 1fr);
+  align-items: center;
+  gap: 24px;
+  padding: 14px 36px;
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(16px);
+}
+
+.topbar-brand {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: var(--text);
+  font-weight: 900;
+  letter-spacing: 0.1px;
+}
+
+.brand-mark {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--brand);
+  color: #fff;
+  box-shadow: var(--shadow-soft);
+}
+
+.brand-word {
+  font-size: 20px;
+}
+
+.topbar-center {
+  justify-self: center;
+  display: grid;
+  grid-template-columns: 136px 150px 58px 136px 136px;
+  align-items: center;
+  gap: 10px;
+}
+
+.top-action-tile {
+  height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--text);
+  font-weight: 800;
+  box-shadow: 0 6px 18px rgba(21, 34, 50, 0.06);
+  transition: 160ms ease;
+}
+
+.top-action-tile:hover:not(.is-empty),
+.top-action-tile.is-active {
+  border-color: rgba(15, 135, 181, 0.35);
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+  transform: translateY(-1px);
+}
+
+.top-action-tile.is-empty {
+  background: var(--surface-2);
+  color: transparent;
+  cursor: default;
+  opacity: 0.72;
+  box-shadow: none;
+}
+
+.quick-create {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 20px;
+  background: var(--text);
+  color: #fff;
+  font-size: 36px;
+  line-height: 1;
+  box-shadow: var(--shadow-soft);
+  transition: 160ms ease;
+}
+
+.quick-create:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.topbar-user-actions {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.top-tabs {
+  display: inline-flex;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-2);
+}
+
+.top-tab {
+  border: 0;
+  border-radius: 13px;
+  padding: 10px 16px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 650;
+  white-space: nowrap;
+  transition: 160ms ease;
+}
+
+.top-tab:hover,
+.top-tab.is-active {
+  background: #fff;
+  color: var(--text);
+  box-shadow: 0 5px 16px rgba(21, 34, 50, 0.08);
+}
+
+.user-button {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--brand);
+  font-weight: 800;
+}
+
+.user-button.is-active {
+  border-color: rgba(15, 135, 181, 0.35);
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+}
+
+.content {
+  padding: 34px 36px 42px;
+}
+
+.view-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.title-block h1 {
+  margin: 0;
+  color: #5b6068;
+  font-size: 42px;
+  line-height: 1.05;
+  font-weight: 700;
+}
+
+.title-block p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.segmented {
+  display: inline-flex;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.segmented button {
+  min-width: 126px;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 18px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  transition: 160ms ease;
+}
+
+.segmented button:hover,
+.segmented button.is-active {
+  background: var(--text);
+  color: #fff;
+}
+
+.date-switcher,
+.calendar-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-chip {
+  min-width: 92px;
+  padding: 9px 14px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  text-align: center;
+  font-weight: 700;
+  box-shadow: var(--shadow-soft);
+}
+
+.icon-button {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--text);
+  font-size: 22px;
+  transition: 160ms ease;
+}
+
+.icon-button:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  transform: translateY(-1px);
+}
+
+.timelog-grid {
+  display: grid;
+  grid-template-columns: 330px minmax(740px, 1fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.summary-panel,
+.timeline-panel,
+.calendar-panel,
+.sheet-panel {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.summary-panel {
+  padding: 24px;
+}
+
+.donut-card {
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fff, var(--surface-2));
+  border: 1px solid var(--line);
+}
+
+.donut {
+  position: relative;
+  width: 186px;
+  height: 186px;
+  border-radius: 50%;
+  background: conic-gradient(var(--brand) 0 65%, var(--accent-soft) 65% 100%);
+  box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.05);
+}
+
+.donut::after {
+  content: "";
+  position: absolute;
+  inset: 34px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.donut-label {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  text-align: center;
+  font-weight: 800;
+}
+
+.donut-label span:first-child {
+  display: block;
+  color: var(--text);
+  font-size: 32px;
+}
+
+.donut-label span:last-child {
+  display: block;
+  margin-top: 5px;
+  font-size: 18px;
+}
+
+.task-list {
+  margin-top: 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.task-summary-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.task-summary-row strong {
+  font-size: 16px;
+  color: var(--text);
+}
+
+.task-summary-row span {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.timeline-panel {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  min-height: 670px;
+}
+
+.timeline-hours {
+  position: relative;
+  border-right: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.hour-label {
+  position: absolute;
+  right: 14px;
+  translate: 0 -50%;
+  color: var(--muted);
+  font-size: 19px;
+  font-weight: 650;
+}
+
+.timeline-canvas {
+  position: relative;
+  min-height: 670px;
+  background:
+    linear-gradient(to bottom, transparent calc(100% - 1px), var(--line) calc(100% - 1px)),
+    repeating-linear-gradient(to bottom, #fff 0, #fff 55px, #f8fafc 55px, #f8fafc 56px);
+  background-size: 100% 56px, 100% 56px;
+}
+
+.time-entry {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 18px;
+  border: 1px solid rgba(43, 122, 191, 0.32);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #acd1f4, #90bee9);
+  color: #39546c;
+  box-shadow: 0 10px 22px rgba(68, 132, 192, 0.18);
+}
+
+.time-entry-title {
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.time-entry-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(39, 49, 63, 0.7);
+  font-weight: 800;
+}
+
+.time-entry-handle {
+  width: 42px;
+  height: 20px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.44);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  position: relative;
+}
+
+.time-entry-handle::before,
+.time-entry-handle::after {
+  content: "";
+  position: absolute;
+  left: 9px;
+  right: 9px;
+  height: 2px;
+  background: rgba(39, 49, 63, 0.45);
+  border-radius: 2px;
+}
+
+.time-entry-handle::before { top: 6px; }
+.time-entry-handle::after { top: 11px; }
+
+.timeline-add {
+  position: absolute;
+  left: 50%;
+  top: 188px;
+  translate: -50% 0;
+  width: 160px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--line-dark);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--muted);
+  font-size: 34px;
+  transition: 160ms ease;
+}
+
+.timeline-add:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  transform: translateY(-2px);
+}
+
+.calendar-panel {
+  padding: 0;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(125px, 1fr));
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+
+.weekday,
+.calendar-day {
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.weekday {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.calendar-day {
+  min-height: 132px;
+  padding: 12px;
+  background: #fff;
+  transition: 160ms ease;
+}
+
+.calendar-day:hover {
+  background: #fbfdff;
+}
+
+.calendar-day.is-muted {
+  color: #a0a8b3;
+  background: #fafbfc;
+}
+
+.calendar-day.is-today {
+  box-shadow: inset 0 0 0 2px rgba(15, 135, 181, 0.3);
+}
+
+.day-number {
+  display: flex;
+  justify-content: flex-end;
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.calendar-entry {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+  font-size: 13px;
+  font-weight: 750;
+  border: 1px solid rgba(15, 135, 181, 0.14);
+}
+
+.calendar-add-line {
+  width: 100%;
+  margin-top: 8px;
+  padding: 6px 8px;
+  border: 1px dashed var(--line-dark);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.sheet-panel {
+  padding: 24px;
+}
+
+.sheet-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.metric-card {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 20px;
+  background: var(--surface-2);
+}
+
+.metric-card span {
+  display: block;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.metric-card strong {
+  font-size: 32px;
+}
+
+.sheet-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+
+.sheet-table th {
+  text-align: left;
+  color: var(--muted);
+  padding: 0 14px 8px;
+  font-size: 14px;
+}
+
+.sheet-table td {
+  padding: 16px 14px;
+  background: #fff;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.sheet-table td:first-child {
+  border-left: 1px solid var(--line);
+  border-radius: 16px 0 0 16px;
+  font-weight: 800;
+}
+
+.sheet-table td:last-child {
+  border-right: 1px solid var(--line);
+  border-radius: 0 16px 16px 0;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.empty-state {
+  border: 1px dashed var(--line-dark);
+  border-radius: var(--radius-lg);
+  padding: 34px;
+  text-align: center;
+  color: var(--muted);
+  background: #fff;
+}
+
+
+.gantt-panel {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.gantt-toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18px;
+  align-items: center;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #fff, var(--surface-2));
+}
+
+.gantt-actions,
+.gantt-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.gantt-info strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 18px;
+}
+
+.gantt-info span {
+  color: var(--muted);
+  font-weight: 650;
+}
+
+.ghost-button {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 11px 14px;
+  background: #fff;
+  color: var(--text);
+  font-weight: 800;
+  transition: 160ms ease;
+}
+
+.ghost-button:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  transform: translateY(-1px);
+}
+
+.gantt-board {
+  display: grid;
+  grid-template-columns: 340px minmax(720px, 1fr);
+  min-height: 560px;
+}
+
+.gantt-sidebar {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+
+.gantt-sidebar-head,
+.gantt-task-row {
+  display: grid;
+  grid-template-columns: 1fr 88px;
+  gap: 12px;
+  align-items: center;
+}
+
+.gantt-sidebar-head {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  min-height: 58px;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.gantt-task-row {
+  min-height: 62px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+  transition: 160ms ease;
+}
+
+.gantt-task-row:hover,
+.gantt-task-row.is-selected {
+  background: var(--brand-soft);
+}
+
+.gantt-task-title {
+  display: block;
+  color: var(--text);
+  font-weight: 850;
+}
+
+.gantt-task-meta {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.gantt-progress-small {
+  justify-self: end;
+  min-width: 58px;
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--brand-dark);
+  text-align: center;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.gantt-timeline {
+  position: relative;
+  overflow: auto;
+  background: #fff;
+}
+
+.gantt-chart {
+  position: relative;
+  min-width: 900px;
+}
+
+.gantt-header-grid,
+.gantt-row-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--gantt-day-width, 34px);
+}
+
+.gantt-header-grid {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  min-height: 58px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.gantt-day-cell {
+  display: grid;
+  place-items: center;
+  border-right: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.gantt-day-cell.is-weekend {
+  background: rgba(15, 135, 181, 0.04);
+}
+
+.gantt-day-cell.is-month-start {
+  box-shadow: inset 2px 0 0 rgba(15, 135, 181, 0.28);
+}
+
+.gantt-row-grid {
+  position: relative;
+  min-height: 62px;
+  border-bottom: 1px solid var(--line);
+}
+
+.gantt-row-grid .gantt-day-cell {
+  color: transparent;
+}
+
+.gantt-bar {
+  position: absolute;
+  top: 14px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(43, 122, 191, 0.34);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #a9d2f6, #83bae9);
+  color: #21364b;
+  box-shadow: 0 10px 22px rgba(68, 132, 192, 0.22);
+  cursor: grab;
+  user-select: none;
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+.gantt-bar:active {
+  cursor: grabbing;
+}
+
+.gantt-bar.is-selected {
+  box-shadow: 0 12px 28px rgba(15, 135, 181, 0.32), 0 0 0 4px rgba(15, 135, 181, 0.16);
+  transform: translateY(-1px);
+}
+
+.gantt-bar-progress {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--progress, 0%);
+  background: rgba(15, 135, 181, 0.26);
+  pointer-events: none;
+}
+
+.gantt-bar-label {
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+  padding: 0 28px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.gantt-resize-handle {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  bottom: 0;
+  width: 18px;
+  cursor: ew-resize;
+}
+
+.gantt-resize-handle.left { left: 0; }
+.gantt-resize-handle.right { right: 0; }
+
+.gantt-today-line {
+  position: absolute;
+  top: 58px;
+  bottom: 0;
+  width: 2px;
+  background: var(--brand);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.gantt-detail-panel {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr auto;
+  gap: 18px;
+  align-items: center;
+  padding: 18px 22px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.gantt-detail-title {
+  display: block;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.gantt-detail-meta {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.progress-control {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.progress-control input {
+  accent-color: var(--brand);
+}
+
+.gantt-empty {
+  padding: 30px;
+  color: var(--muted);
+  font-weight: 750;
+}
+
+
+/* Workspace Dashboard mit Projektwidgets */
+.project-subtitle {
+  margin-top: 5px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.workspace-layout {
+  display: grid;
+  gap: 22px;
+}
+
+.workspace-project-banner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  padding: 22px 24px;
+  background: linear-gradient(135deg, #ffffff, #eef8fc);
+  box-shadow: var(--shadow-soft);
+}
+
+.workspace-project-banner span {
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.workspace-project-banner h2 {
+  margin: 6px 0 0;
+  font-size: 30px;
+}
+
+.workspace-project-banner p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-weight: 650;
+}
+
+.dashboard-kpi-strip {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: end;
+}
+
+.dashboard-kpi {
+  min-width: 112px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  text-align: center;
+}
+
+.dashboard-kpi strong {
+  display: block;
+  font-size: 22px;
+}
+
+.dashboard-kpi span {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.dashboard-widget-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+.dashboard-widget,
+.notes-card,
+.project-detail-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.dashboard-widget {
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.widget-header,
+.notes-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: start;
+  padding: 20px 22px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.widget-header h2,
+.notes-card-header h2,
+.project-detail-card h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.widget-header p,
+.notes-card-header p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.widget-action,
+.ghost-button.widget-action {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 9px 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 850;
+  transition: 160ms ease;
+}
+
+.widget-action:hover,
+.ghost-button.widget-action:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  transform: translateY(-1px);
+}
+
+.task-widget-list {
+  display: grid;
+  gap: 10px;
+  padding: 16px 18px 20px;
+}
+
+.assigned-task-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-2);
+}
+
+.assigned-task-row strong {
+  display: block;
+  font-size: 15px;
+}
+
+.assigned-task-row span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.task-status-pill,
+.pipeline-count-pill {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.mini-gantt {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 10px 14px;
+  padding: 18px 20px 22px;
+  align-items: center;
+}
+
+.mini-gantt-label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mini-gantt-track {
+  position: relative;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.mini-gantt-bar {
+  position: absolute;
+  top: 5px;
+  height: 20px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #a9d2f6, #7fb7e7);
+  box-shadow: 0 6px 14px rgba(15, 135, 181, 0.18);
+}
+
+.resource-list {
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px 22px;
+}
+
+.resource-row {
+  display: grid;
+  grid-template-columns: 132px 1fr 48px;
+  gap: 12px;
+  align-items: center;
+}
+
+.resource-name {
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.resource-owner {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.resource-track {
+  height: 14px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.resource-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+}
+
+.resource-value {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+  text-align: right;
+}
+
+
+.resource-overview-shell {
+  display: grid;
+  gap: 18px;
+}
+
+.resource-overview-card {
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.resource-overview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #fff, var(--surface-2));
+}
+
+.resource-filter-pills,
+.resource-calendar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.resource-pill {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 14px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.resource-pill.is-active {
+  border-color: rgba(15, 135, 181, 0.36);
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+}
+
+.resource-search {
+  width: 180px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 14px;
+  background: #fff;
+  color: var(--muted);
+  outline: none;
+}
+
+.resource-small-button {
+  min-width: 42px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text);
+  font-weight: 900;
+}
+
+.resource-planner-scroll {
+  overflow-x: auto;
+  padding: 18px 18px 20px;
+}
+
+.resource-planner {
+  --days: 24;
+  --label-width: 190px;
+  --min-day-width: 38px;
+  width: 100%;
+  min-width: calc(var(--label-width) + (var(--days) * var(--min-day-width)));
+  display: grid;
+  gap: 12px;
+}
+
+.resource-grid-row {
+  display: grid;
+  grid-template-columns: var(--label-width) repeat(var(--days), minmax(var(--min-day-width), 1fr));
+}
+
+.resource-grid-cell,
+.resource-row-label,
+.resource-date-label {
+  min-height: 34px;
+  display: grid;
+  place-items: center;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+}
+
+.resource-date-label {
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.resource-row-label {
+  justify-items: start;
+  padding: 0 12px;
+  border-left: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.resource-grid-cell {
+  color: #101828;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.resource-grid-cell.is-weekend {
+  background: #e5e7eb;
+}
+
+.resource-grid-cell.is-negative {
+  color: #e11d48;
+  background: #fff1f2;
+}
+
+.resource-group {
+  display: grid;
+  gap: 0;
+}
+
+.resource-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 0 0 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.resource-group-title span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.resource-task-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--label-width) 1fr;
+  min-height: 44px;
+}
+
+.resource-task-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--days), minmax(var(--min-day-width), 1fr));
+}
+
+.resource-task-bg {
+  min-height: 44px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+}
+
+.resource-task-bg.is-weekend {
+  background: #bfc3c9;
+}
+
+.resource-task-bars {
+  position: absolute;
+  left: var(--label-width);
+  right: 0;
+  top: 0;
+  height: 44px;
+  display: grid;
+  grid-template-columns: repeat(var(--days), minmax(var(--min-day-width), 1fr));
+  grid-template-rows: repeat(3, 13px);
+  align-content: start;
+  gap: 0;
+  padding: 7px 3px 0;
+  pointer-events: none;
+}
+
+.resource-task-bar {
+  position: relative;
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  color: #fff;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  box-shadow: 0 4px 10px rgba(21, 34, 50, 0.14);
+}
+
+.resource-task-bar.is-red {
+  background: #f04438;
+}
+
+.resource-task-bar.is-blue {
+  background: #2e90fa;
+}
+
+.resource-task-bar.is-green {
+  background: #32d583;
+}
+
+.resource-add-row {
+  width: var(--label-width);
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 850;
+}
+
+.resource-unassigned {
+  margin-top: 92px;
+}
+
+.resource-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 0 18px 18px;
+}
+
+.resource-summary-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: var(--surface-2);
+}
+
+.resource-summary-card strong {
+  display: block;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.resource-summary-card span {
+  display: block;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pipeline-board {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(92px, 1fr));
+  gap: 10px;
+  padding: 18px 18px 22px;
+}
+
+.pipeline-column {
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 12px;
+  background: var(--surface-2);
+}
+
+.pipeline-column header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.pipeline-column strong {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.pipeline-card {
+  border-radius: 14px;
+  padding: 9px 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 5px 12px rgba(21, 34, 50, 0.05);
+}
+
+.notes-card {
+  max-width: 980px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.notes-status {
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.notes-field {
+  width: 100%;
+  min-height: 190px;
+  border: 0;
+  padding: 20px 22px;
+  color: var(--text);
+  background: #fff;
+  outline: 0;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.notes-field:focus {
+  box-shadow: inset 0 0 0 4px rgba(15, 135, 181, 0.1);
+}
+
+.project-detail-card {
+  padding: 24px;
+}
+
+.project-list-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.project-list-card {
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 22px;
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+}
+
+.project-list-card span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.project-list-card h2 {
+  margin: 10px 0 8px;
+  font-size: 24px;
+}
+
+.project-list-card p {
+  margin: 0 0 18px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.project-list-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.project-list-meta div {
+  border-radius: 14px;
+  padding: 10px;
+  background: var(--surface-2);
+}
+
+.project-list-meta strong,
+.project-list-meta small {
+  display: block;
+}
+
+.project-list-meta small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.project-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.project-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.project-detail-table th,
+.project-detail-table td {
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-size: 14px;
+}
+
+.project-detail-table th {
+  color: var(--muted);
+  background: var(--surface-2);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1420px) {
+  .dashboard-widget-grid,
+  .project-detail-grid,
+  .project-list-grid {
+    grid-template-columns: 1fr;
+  }
+
+  
+.resource-overview-shell {
+  display: grid;
+  gap: 18px;
+}
+
+.resource-overview-card {
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.resource-overview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #fff, var(--surface-2));
+}
+
+.resource-filter-pills,
+.resource-calendar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.resource-pill {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 14px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.resource-pill.is-active {
+  border-color: rgba(15, 135, 181, 0.36);
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+}
+
+.resource-search {
+  width: 180px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 14px;
+  background: #fff;
+  color: var(--muted);
+  outline: none;
+}
+
+.resource-small-button {
+  min-width: 42px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text);
+  font-weight: 900;
+}
+
+.resource-planner-scroll {
+  overflow-x: auto;
+  padding: 18px 18px 20px;
+}
+
+.resource-planner {
+  --days: 24;
+  --label-width: 190px;
+  --min-day-width: 38px;
+  width: 100%;
+  min-width: calc(var(--label-width) + (var(--days) * var(--min-day-width)));
+  display: grid;
+  gap: 12px;
+}
+
+.resource-grid-row {
+  display: grid;
+  grid-template-columns: var(--label-width) repeat(var(--days), minmax(var(--min-day-width), 1fr));
+}
+
+.resource-grid-cell,
+.resource-row-label,
+.resource-date-label {
+  min-height: 34px;
+  display: grid;
+  place-items: center;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+}
+
+.resource-date-label {
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.resource-row-label {
+  justify-items: start;
+  padding: 0 12px;
+  border-left: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.resource-grid-cell {
+  color: #101828;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.resource-grid-cell.is-weekend {
+  background: #e5e7eb;
+}
+
+.resource-grid-cell.is-negative {
+  color: #e11d48;
+  background: #fff1f2;
+}
+
+.resource-group {
+  display: grid;
+  gap: 0;
+}
+
+.resource-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 0 0 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.resource-group-title span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.resource-task-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--label-width) 1fr;
+  min-height: 44px;
+}
+
+.resource-task-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--days), minmax(var(--min-day-width), 1fr));
+}
+
+.resource-task-bg {
+  min-height: 44px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+}
+
+.resource-task-bg.is-weekend {
+  background: #bfc3c9;
+}
+
+.resource-task-bars {
+  position: absolute;
+  left: var(--label-width);
+  right: 0;
+  top: 0;
+  height: 44px;
+  display: grid;
+  grid-template-columns: repeat(var(--days), minmax(var(--min-day-width), 1fr));
+  grid-template-rows: repeat(3, 13px);
+  align-content: start;
+  gap: 0;
+  padding: 7px 3px 0;
+  pointer-events: none;
+}
+
+.resource-task-bar {
+  position: relative;
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  color: #fff;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  box-shadow: 0 4px 10px rgba(21, 34, 50, 0.14);
+}
+
+.resource-task-bar.is-red {
+  background: #f04438;
+}
+
+.resource-task-bar.is-blue {
+  background: #2e90fa;
+}
+
+.resource-task-bar.is-green {
+  background: #32d583;
+}
+
+.resource-add-row {
+  width: var(--label-width);
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 850;
+}
+
+.resource-unassigned {
+  margin-top: 92px;
+}
+
+.resource-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 0 18px 18px;
+}
+
+.resource-summary-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: var(--surface-2);
+}
+
+.resource-summary-card strong {
+  display: block;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.resource-summary-card span {
+  display: block;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pipeline-board {
+    grid-template-columns: repeat(3, minmax(120px, 1fr));
+  }
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.36);
+  backdrop-filter: blur(8px);
+}
+
+.modal-card {
+  position: relative;
+  width: min(520px, 100%);
+  border-radius: 28px;
+  padding: 28px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.modal-card h2 {
+  margin: 0 0 18px;
+  font-size: 28px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+}
+
+.entry-form,
+.entry-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.entry-form {
+  gap: 16px;
+}
+
+.entry-form label {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.entry-form input,
+.entry-form textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+}
+
+.entry-form input:focus,
+.entry-form textarea:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px rgba(15, 135, 181, 0.12);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.primary-button {
+  border: 0;
+  border-radius: 16px;
+  padding: 14px 18px;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 800;
+  box-shadow: var(--shadow-soft);
+}
+
+.primary-button:hover {
+  background: var(--brand-dark);
+}
+
+@media (max-width: 1280px) {
+  :root {
+    --sidebar-width: 240px;
+  }
+
+  .nav-item {
+    font-size: 18px;
+  }
+
+  .timelog-grid {
+    grid-template-columns: 290px minmax(650px, 1fr);
+  }
+}
+
+  
+@media (max-width: 1300px) {
+  .shortcut-grid {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+
+  .workspace-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-side-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+  }
+}
+
+
+
+.task-row-button {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 12px;
+  background: #fff;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.task-row-button:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.project-detail-table tr.is-clickable {
+  transition: 160ms ease;
+}
+
+.project-detail-table tr.is-clickable:hover td {
+  background: #f8fbfe;
+}
+
+.task-page-header {
+  margin-bottom: 18px;
+}
+
+.task-page-context h1 {
+  margin: 0;
+  color: #5b6068;
+  font-size: 42px;
+  line-height: 1.05;
+  font-weight: 700;
+}
+
+.task-breadcrumbs {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.task-breadcrumbs button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--brand-dark);
+  font-weight: 850;
+}
+
+.task-breadcrumbs strong {
+  color: var(--muted);
+}
+
+.task-detail-layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(760px, 1fr) 326px;
+  gap: 20px;
+  align-items: start;
+}
+
+.task-detail-layout.is-rail-collapsed {
+  grid-template-columns: minmax(760px, 1fr) 0;
+}
+
+.task-detail-main {
+  min-width: 0;
+}
+
+.task-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.task-title-row h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.detail-status-badge {
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.detail-status-badge.is-heute,
+.detail-status-badge.is-review {
+  background: #fff2cc;
+  color: #8a6d00;
+}
+
+.detail-status-badge.is-offen {
+  background: #eef2f7;
+  color: #536071;
+}
+
+.detail-status-badge.is-in-arbeit,
+.detail-status-badge.is-in-bearbeitung {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.task-main-grid {
+  display: grid;
+  grid-template-columns: minmax(520px, 1fr) 300px;
+  gap: 18px;
+  align-items: start;
+}
+
+.task-main-column,
+.task-comments-column {
+  display: grid;
+  gap: 18px;
+}
+
+.task-detail-card {
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.task-card-inner {
+  padding: 18px 20px 20px;
+}
+
+.task-section-label {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.task-general-box {
+  min-height: 210px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fff, var(--surface-2));
+  padding: 18px;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.task-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.task-info-list {
+  display: grid;
+  gap: 12px;
+}
+
+.task-info-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.task-info-row span {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.task-info-row strong,
+.effort-pill,
+.dependency-pill {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.task-effort-list {
+  display: grid;
+  gap: 12px;
+}
+
+.task-progress-block {
+  margin-top: 8px;
+}
+
+.task-progress-track {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.task-progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #56d364, #38b249);
+}
+
+.task-progress-value {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.task-description {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.65;
+}
+
+.comment-thread {
+  display: grid;
+  gap: 10px;
+}
+
+.comment-item {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.comment-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--line-dark);
+  background: #fff;
+  margin-top: 8px;
+}
+
+.comment-card {
+  border-radius: 16px;
+  padding: 14px 14px 12px;
+}
+
+.comment-card h4 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.comment-card p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.comment-card small {
+  display: block;
+  margin-top: 8px;
+  color: #5f6b7a;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.comment-card.is-red { background: #fdd9d6; }
+.comment-card.is-yellow { background: #f5e59b; }
+.comment-card.is-green { background: #c6edbd; }
+.comment-card.is-blue { background: #d8ebff; }
+
+.comment-composer {
+  position: relative;
+  margin-top: 14px;
+}
+
+.comment-composer textarea {
+  width: 100%;
+  min-height: 126px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px 48px 14px 14px;
+  background: var(--surface-2);
+  outline: none;
+}
+
+.comment-composer textarea:focus {
+  border-color: rgba(15, 135, 181, 0.45);
+  box-shadow: 0 0 0 4px rgba(15, 135, 181, 0.08);
+}
+
+.comment-send {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text);
+  font-weight: 900;
+}
+
+.task-widget-rail {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.task-detail-layout.is-rail-collapsed .task-widget-rail {
+  display: none;
+}
+
+.project-widget-card {
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.project-widget-card .widget-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.project-widget-card .widget-head h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.widget-chevron {
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.widget-content {
+  padding: 14px 16px 16px;
+}
+
+.widget-link {
+  margin-top: 12px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--brand-dark);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.rail-gantt-grid {
+  display: grid;
+  grid-template-columns: 76px repeat(4, 1fr);
+  gap: 0;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.rail-gantt-grid > div {
+  min-height: 32px;
+  display: grid;
+  place-items: center;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.rail-gantt-grid > div:nth-child(5n) {
+  border-right: 0;
+}
+
+.rail-gantt-label {
+  justify-items: start !important;
+  padding-left: 10px;
+  color: var(--text);
+}
+
+.rail-bar-cell {
+  position: relative;
+}
+
+.rail-bar-cell span {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 7px;
+  height: 16px;
+  border-radius: 999px;
+}
+
+.rail-bar-blue span { background: #41a5ee; }
+.rail-bar-green span { background: #65c97b; }
+.rail-bar-yellow span { background: #f2c94c; }
+.rail-bar-purple span { background: #aa7de3; }
+
+.resource-donut-wrap {
+  display: grid;
+  grid-template-columns: 112px 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.resource-donut {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  background: conic-gradient(#1d81d8 0 52%, #f2c94c 52% 72%, #56d364 72% 100%);
+}
+
+.resource-donut::after {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.resource-donut-label {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.resource-donut-label strong {
+  display: block;
+  color: var(--text);
+  font-size: 26px;
+}
+
+.resource-legend {
+  display: grid;
+  gap: 10px;
+}
+
+.resource-legend-row {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-dot.is-green { background: #56d364; }
+.legend-dot.is-blue { background: #1d81d8; }
+.legend-dot.is-yellow { background: #f2c94c; }
+
+.rail-pipeline-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.rail-pipeline-box {
+  border-radius: 14px;
+  padding: 10px 6px;
+  text-align: center;
+  font-weight: 850;
+}
+
+.rail-pipeline-box small {
+  display: block;
+  font-size: 11px;
+}
+
+.rail-pipeline-box strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 25px;
+  line-height: 1;
+}
+
+.rail-pipeline-box.is-blue { background: #d8ebff; }
+.rail-pipeline-box.is-green { background: #dff0da; }
+.rail-pipeline-box.is-yellow { background: #f6efc8; }
+.rail-pipeline-box.is-purple { background: #eee4fb; }
+
+.status-summary-list {
+  display: grid;
+  gap: 10px;
+}
+
+.status-summary-row {
+  display: grid;
+  grid-template-columns: 1fr auto 110px;
+  gap: 10px;
+  align-items: center;
+}
+
+.status-summary-row span,
+.status-summary-row strong {
+  font-size: 13px;
+}
+
+.status-summary-row span {
+  color: var(--text);
+  font-weight: 750;
+}
+
+.status-mini-track {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.status-mini-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+}
+
+.status-mini-fill.is-gray { background: #9ca3af; }
+.status-mini-fill.is-blue { background: #41a5ee; }
+.status-mini-fill.is-yellow { background: #f2c94c; }
+.status-mini-fill.is-green { background: #56d364; }
+
+.task-rail-toggle {
+  position: absolute;
+  top: 10px;
+  right: 314px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+  z-index: 2;
+}
+
+.task-detail-layout.is-rail-collapsed .task-rail-toggle {
+  right: -10px;
+}
+
+@media (max-width: 1540px) {
+  .task-detail-layout,
+  .task-detail-layout.is-rail-collapsed {
+    grid-template-columns: 1fr;
+  }
+
+  .task-widget-rail,
+  .task-detail-layout.is-rail-collapsed .task-widget-rail {
+    display: grid;
+  }
+
+  .task-rail-toggle {
+    right: 10px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .task-main-grid,
+  .task-meta-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+</style>
+</head>
+<body>
+  <div id="app" class="app-shell"></div>
+
+  <template id="modal-template">
+    <div class="modal-backdrop" data-modal-close>
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button class="icon-button modal-close" type="button" data-modal-close aria-label="Fenster schließen">×</button>
+        <h2 id="modal-title">Eintrag anlegen</h2>
+        <form class="entry-form" id="entry-form">
+          <label>
+            Titel
+            <input name="title" type="text" placeholder="Aufgabentitel" required />
+          </label>
+          <div class="form-grid">
+            <label>
+              Start
+              <input name="start" type="time" value="09:00" required />
+            </label>
+            <label>
+              Ende
+              <input name="end" type="time" value="10:00" required />
+            </label>
+          </div>
+          <label>
+            Beschreibung
+            <textarea name="description" rows="3" placeholder="Kurze Notiz zum Vorgang"></textarea>
+          </label>
+          <button class="primary-button" type="submit">Speichern</button>
+        </form>
+      </section>
+    </div>
+  </template>
+
+  <script>
+class EventStore {
+  constructor() {
+    this.storageKey = 'fixplan-prototype-events';
+    this.events = this.loadEvents();
+  }
+
+  loadEvents() {
+    const stored = window.localStorage.getItem(this.storageKey);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (error) {
+        console.warn('Gespeicherte FixPlan Daten konnten nicht gelesen werden.', error);
+      }
+    }
+
+    return [
+      { id: 1, title: 'Aufgabentitel 1', date: '2024-04-05', start: '06:55', end: '07:45', description: 'Kurzer Vorgang im Time Log.' },
+      { id: 2, title: 'Aufgabentitel 2', date: '2024-04-05', start: '10:00', end: '12:15', description: 'Längerer Arbeitsblock.' },
+      { id: 3, title: 'Aufgabentitel 3', date: '2024-04-05', start: '14:00', end: '17:00', description: 'Projektarbeit.' },
+      { id: 4, title: 'Planung Review', date: '2024-04-16', start: '10:00', end: '10:45', description: 'Termin aus der Kalenderansicht.' },
+      { id: 5, title: 'Team Abstimmung', date: '2024-04-18', start: '13:00', end: '14:00', description: 'Abstimmung im Projektteam.' }
+    ];
+  }
+
+  persist() {
+    window.localStorage.setItem(this.storageKey, JSON.stringify(this.events));
+  }
+
+  addEvent(event) {
+    const nextId = Math.max(0, ...this.events.map(item => item.id)) + 1;
+    const newEvent = { id: nextId, ...event };
+    this.events.push(newEvent);
+    this.persist();
+    return newEvent;
+  }
+
+  getEventsForDate(date) {
+    return this.events
+      .filter(event => event.date === date)
+      .sort((a, b) => a.start.localeCompare(b.start));
+  }
+
+  getEventsForMonth(year, monthIndex) {
+    const prefix = `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
+    return this.events.filter(event => event.date.startsWith(prefix));
+  }
+
+  search(query) {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return this.events;
+
+    return this.events.filter(event => (
+      event.title.toLowerCase().includes(normalized) ||
+      event.description.toLowerCase().includes(normalized) ||
+      event.date.includes(normalized)
+    ));
+  }
+}
+
+
+class GanttStore {
+  constructor() {
+    this.storageKey = 'fixplan-prototype-gantt-tasks';
+    this.tasks = this.loadTasks();
+  }
+
+  loadTasks() {
+    const stored = window.localStorage.getItem(this.storageKey);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (error) {
+        console.warn('Gespeicherte Gantt Daten konnten nicht gelesen werden.', error);
+      }
+    }
+
+    return [
+      { id: 1, title: 'Projektstart & Analyse', owner: 'Team', start: '2024-04-01', end: '2024-04-05', progress: 100, status: 'Abgeschlossen' },
+      { id: 2, title: 'Konzept & Anforderungen', owner: 'Niklas', start: '2024-04-04', end: '2024-04-12', progress: 75, status: 'In Arbeit' },
+      { id: 3, title: 'Oberflächen entwerfen', owner: 'Design', start: '2024-04-10', end: '2024-04-18', progress: 55, status: 'In Arbeit' },
+      { id: 4, title: 'Prototyp umsetzen', owner: 'Dev', start: '2024-04-17', end: '2024-04-26', progress: 30, status: 'Geplant' },
+      { id: 5, title: 'Review & Abnahme', owner: 'Projektleitung', start: '2024-04-25', end: '2024-04-30', progress: 0, status: 'Offen' }
+    ];
+  }
+
+  persist() {
+    window.localStorage.setItem(this.storageKey, JSON.stringify(this.tasks));
+  }
+
+  getTasks(query = '') {
+    const normalized = query.trim().toLowerCase();
+    const result = normalized
+      ? this.tasks.filter(task => (
+          task.title.toLowerCase().includes(normalized) ||
+          task.owner.toLowerCase().includes(normalized) ||
+          task.status.toLowerCase().includes(normalized)
+        ))
+      : this.tasks;
+
+    return [...result].sort((a, b) => a.start.localeCompare(b.start));
+  }
+
+  getTask(id) {
+    return this.tasks.find(task => task.id === Number(id));
+  }
+
+  addTask(task) {
+    const nextId = Math.max(0, ...this.tasks.map(item => item.id)) + 1;
+    const newTask = { id: nextId, ...task };
+    this.tasks.push(newTask);
+    this.persist();
+    return newTask;
+  }
+
+  updateTask(id, changes) {
+    const task = this.getTask(id);
+    if (!task) return null;
+    Object.assign(task, changes);
+    this.persist();
+    return task;
+  }
+
+  deleteTask(id) {
+    this.tasks = this.tasks.filter(task => task.id !== Number(id));
+    this.persist();
+  }
+}
+
+
+class DemoProjectStore {
+  constructor() {
+    this.name = 'DemoProjekt';
+    this.displayName = 'Demo Projekt';
+    this.tasks = [
+      { id: 101, title: 'Anforderungsworkshop vorbereiten', owner: 'Niklas Radestock', due: '2024-04-08', status: 'Heute', priority: 'Hoch', progress: 70 },
+      { id: 102, title: 'Klickdummy mit Stakeholdern testen', owner: 'Niklas Radestock', due: '2024-04-11', status: 'In Arbeit', priority: 'Mittel', progress: 45 },
+      { id: 103, title: 'Ressourcenplan abstimmen', owner: 'Lena Koch', due: '2024-04-15', status: 'Offen', priority: 'Mittel', progress: 15 },
+      { id: 104, title: 'Sprint Demo vorbereiten', owner: 'Jonas Meyer', due: '2024-04-18', status: 'Review', priority: 'Hoch', progress: 85 }
+    ];
+
+    this.taskDetails = {
+      101: {
+        generalInfo: 'Vorbereitung und Moderation des initialen Workshops mit den wichtigsten Stakeholdern. Ziel ist ein abgestimmtes Verständnis zu Zielen, Umfang und Abnahmekriterien.',
+        startWork: '2024-04-03',
+        plannedEnd: '2024-04-08',
+        dependency: 'Teilnehmerkreis final bestätigen',
+        estimatedEffort: '20 PT',
+        plannedEffort: '20 PT',
+        remainingEffort: '6 PT',
+        spentEffort: '14 PT',
+        progress: 70,
+        description: 'Für den Workshop werden Agenda, Zielbild, Rollen und erste Anforderungen vorbereitet. Zusätzlich werden offene Fragen gebündelt, um im Termin schnell Entscheidungen zu ermöglichen.',
+        comments: [
+          { type: 'Blocker', color: 'red', text: 'Feedback aus dem Fachbereich zur Agenda steht noch aus.', meta: 'Aktualisiert: 12.05.2024 · Max M.' },
+          { type: 'Risiko', color: 'red', text: 'Zwei Stakeholder sind am geplanten Termin noch nicht final bestätigt.', meta: 'Aktualisiert: 10.05.2024 · Sarah K.' },
+          { type: 'In Bearbeitung', color: 'yellow', text: 'Workshop Unterlagen werden aktuell konsolidiert und strukturiert.', meta: 'Aktualisiert: 08.05.2024 · Tom L.' },
+          { type: 'Freigegeben', color: 'green', text: 'Ziele und gewünschte Ergebnisse wurden vom Projektleitungsteam bestätigt.', meta: 'Aktualisiert: 05.05.2024 · Anna R.' }
+        ]
+      },
+      102: {
+        generalInfo: 'Test des Klickdummys mit Stakeholdern, inklusive Vorbereitung der Testfälle und Sammlung von Feedback.',
+        startWork: '2024-04-08',
+        plannedEnd: '2024-04-11',
+        dependency: 'UI Mockup Version 2',
+        estimatedEffort: '18 PT',
+        plannedEffort: '20 PT',
+        remainingEffort: '11 PT',
+        spentEffort: '9 PT',
+        progress: 45,
+        description: 'Die Stakeholder sollen den Klickdummy anhand realistischer Abläufe testen. Erkenntnisse fließen direkt in die Priorisierung des nächsten Sprints ein.',
+        comments: [
+          { type: 'In Bearbeitung', color: 'yellow', text: 'Testskript ist vorbereitet, Teilnehmer Einladungen wurden versendet.', meta: 'Aktualisiert: 11.05.2024 · Lena K.' },
+          { type: 'Info', color: 'blue', text: 'Erste Rückmeldungen zeigen positives Feedback zur Navigationsstruktur.', meta: 'Aktualisiert: 09.05.2024 · Niklas R.' }
+        ]
+      },
+      103: {
+        generalInfo: 'Abstimmung des Ressourcenplans mit Blick auf Kapazitäten, Engpässe und offene Zuordnungen.',
+        startWork: '2024-04-11',
+        plannedEnd: '2024-04-15',
+        dependency: 'Aktualisierte Teamverfügbarkeit',
+        estimatedEffort: '12 PT',
+        plannedEffort: '16 PT',
+        remainingEffort: '13 PT',
+        spentEffort: '3 PT',
+        progress: 15,
+        description: 'Ziel ist ein belastbarer Ressourcenplan, der Engpässe früh sichtbar macht und realistische Zuweisungen für das DemoProjekt ermöglicht.',
+        comments: [
+          { type: 'Offen', color: 'blue', text: 'Mehrere Aufgaben sind noch keiner Ressource zugewiesen.', meta: 'Aktualisiert: 13.05.2024 · Lena K.' }
+        ]
+      },
+      104: {
+        generalInfo: 'Vorbereitung der Sprint Demo mit Storyline, Ergebnissen und offenen Punkten für das Review Meeting.',
+        startWork: '2024-04-12',
+        plannedEnd: '2024-04-18',
+        dependency: 'Fertigstellung des UI Prototyps',
+        estimatedEffort: '10 PT',
+        plannedEffort: '12 PT',
+        remainingEffort: '2 PT',
+        spentEffort: '10 PT',
+        progress: 85,
+        description: 'Die Sprint Demo zeigt die wichtigsten Ergebnisse des aktuellen Iterationszyklus und bereitet Entscheidungen für den nächsten Schritt vor.',
+        comments: [
+          { type: 'Review', color: 'green', text: 'Demo Agenda und Verantwortlichkeiten sind fast vollständig vorbereitet.', meta: 'Aktualisiert: 14.05.2024 · Jonas M.' }
+        ]
+      }
+    };
+
+    this.resources = [
+      { name: 'Projektmanagement', owner: 'Niklas', capacity: 68 },
+      { name: 'UX Design', owner: 'Lena', capacity: 74 },
+      { name: 'Entwicklung', owner: 'Jonas', capacity: 86 },
+      { name: 'Testing', owner: 'Mara', capacity: 42 }
+    ];
+
+    this.pipeline = [
+      { name: 'Idee', cards: ['Reporting Idee', 'Export prüfen'] },
+      { name: 'Analyse', cards: ['Ressourcenplan', 'Abnahmekriterien'] },
+      { name: 'Umsetzung', cards: ['Workspace UI', 'Gantt Interaktion'] },
+      { name: 'Abschluss', cards: ['Klickdummy Test', 'Basislayout'] }
+    ];
+  }
+
+  getAssignedTasks() {
+    return this.tasks;
+  }
+
+  getTaskById(id) {
+    return this.tasks.find(task => task.id === Number(id)) || this.tasks[0];
+  }
+
+  getTaskDetail(id) {
+    return this.taskDetails[id] || this.taskDetails[this.tasks[0].id];
+  }
+
+  getTaskStatusSummary() {
+    return [
+      { label: 'Nicht gestartet', value: 12, color: 'gray', fill: 78 },
+      { label: 'In Bearbeitung', value: 9, color: 'blue', fill: 58 },
+      { label: 'Warten auf Freigabe', value: 4, color: 'yellow', fill: 34 },
+      { label: 'Abgeschlossen', value: 16, color: 'green', fill: 88 }
+    ];
+  }
+
+  getResources() {
+    return this.resources;
+  }
+
+  getPipeline() {
+    return this.pipeline;
+  }
+
+  getCompletionAverage() {
+    const sum = this.tasks.reduce((total, task) => total + task.progress, 0);
+    return Math.round(sum / this.tasks.length);
+  }
+
+  getOpenTaskCount() {
+    return this.tasks.filter(task => task.status !== 'Done' && task.status !== 'Abgeschlossen').length;
+  }
+}
+
+class DateService {
+  static toISO(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
+  static fromISO(value) {
+    const [year, month, day] = value.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+
+  static addDays(date, amount) {
+    const copy = new Date(date);
+    copy.setDate(copy.getDate() + amount);
+    return copy;
+  }
+
+  static addMonths(date, amount) {
+    const copy = new Date(date);
+    copy.setMonth(copy.getMonth() + amount);
+    return copy;
+  }
+
+  static timeToMinutes(time) {
+    const [hours, minutes] = time.split(':').map(Number);
+    return (hours * 60) + minutes;
+  }
+
+  static minutesToReadable(minutes) {
+    const hours = Math.floor(minutes / 60);
+    const rest = minutes % 60;
+    return `${hours}:${String(rest).padStart(2, '0')} h`;
+  }
+
+  static diffDays(startIso, endIso) {
+    const start = DateService.fromISO(startIso);
+    const end = DateService.fromISO(endIso);
+    return Math.round((end - start) / 86400000);
+  }
+
+  static addDaysToISO(value, amount) {
+    return DateService.toISO(DateService.addDays(DateService.fromISO(value), amount));
+  }
+
+  static formatShortDate(value) {
+    return DateService.fromISO(value).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+  }
+
+  static formatRange(startIso, endIso) {
+    return `${DateService.formatShortDate(startIso)} bis ${DateService.formatShortDate(endIso)}`;
+  }
+
+  static formatDateChip(date) {
+    return date.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'numeric' });
+  }
+
+  static formatMonthTitle(date) {
+    return date.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+  }
+}
+
+class Component {
+  constructor(app) {
+    this.app = app;
+  }
+
+  htmlToElement(html) {
+    const template = document.createElement('template');
+    template.innerHTML = html.trim();
+    return template.content.firstElementChild;
+  }
+}
+
+class Sidebar extends Component {
+  constructor(app) {
+    super(app);
+    this.projectItems = [
+      { label: 'Vorgangsliste', view: 'tasks', icon: '☑', area: 'project' },
+      { label: 'Gantt Chart', view: 'gantt', icon: '↗', area: 'project' },
+      { label: 'Ressourcen/<br>Kapazitäten', view: 'resources', icon: '◎', area: 'project' },
+      { label: 'Pipeline', view: 'pipeline', icon: '▥', area: 'project' }
+    ];
+
+    this.userItems = [
+      { label: 'Workspace', view: 'workspace', icon: '⌂', area: 'personal' },
+      { label: 'Timesheet', view: 'timesheet', icon: '▤', area: 'personal' },
+      { label: 'Time Log', view: 'timelog', icon: '◴', area: 'personal' },
+      { label: 'Kalender', view: 'calendar', icon: '◷', area: 'personal' },
+      { label: 'Profil', view: 'profile', icon: 'NR', area: 'personal' }
+    ];
+  }
+
+  render() {
+    const isPersonal = this.app.isPersonalSection();
+    const sidebar = this.htmlToElement(`
+      <aside class="sidebar ${isPersonal ? 'is-personal' : 'is-project'}">
+        ${isPersonal ? this.renderUserHeader() : this.renderProjectHeader()}
+        <div class="sidebar-context-label">${isPersonal ? 'Nutzerfunktionen' : 'Projektfunktionen'}</div>
+        <nav class="nav-list" aria-label="${isPersonal ? 'Nutzerfunktionen' : 'Projektfunktionen'}"></nav>
+      </aside>
+    `);
+
+    const nav = sidebar.querySelector('.nav-list');
+    const items = isPersonal ? this.userItems : this.projectItems;
+    items.forEach(item => {
+      const multilineClass = item.label.includes('<br>') ? 'is-multiline' : '';
+      const active = this.app.currentArea === item.area && (
+        this.app.currentView === item.view ||
+        (this.app.currentView === 'task-detail' && item.view === 'tasks')
+      );
+      const button = this.htmlToElement(`
+        <button class="nav-item ${active ? 'is-active' : ''} ${multilineClass}" type="button">
+          <span class="nav-icon">${item.icon}</span>
+          <span class="nav-label">${item.label}</span>
+        </button>
+      `);
+      button.addEventListener('click', () => this.handleClick(item));
+      nav.append(button);
+    });
+
+    return sidebar;
+  }
+
+  renderProjectHeader() {
+    return `
+      <div class="project-switcher">
+        <div>
+          <div class="project-title">DemoProjekt</div>
+          <div class="project-subtitle">FixPlan Projekt</div>
+        </div>
+        <button class="project-toggle" type="button" aria-label="Projekt wechseln">⌄</button>
+      </div>
+    `;
+  }
+
+  renderUserHeader() {
+    return `
+      <div class="user-switcher">
+        <div class="user-name">Niklas<br>Radestock</div>
+        <div class="user-subtitle">Personal Workspace</div>
+      </div>
+    `;
+  }
+
+  handleClick(item) {
+    if (item.area === 'personal') {
+      this.app.setPersonalView(item.view);
+      return;
+    }
+
+    this.app.setProjectView(item.view);
+  }
+}
+
+class TopBar extends Component {
+  constructor(app) {
+    super(app);
+    this.tabs = [
+      { label: 'Timesheet', view: 'timesheet' },
+      { label: 'Time Log', view: 'timelog' },
+      { label: 'Kalender', view: 'calendar' }
+    ];
+  }
+
+  render() {
+    const topbar = this.htmlToElement(`
+      <header class="topbar">
+        <div class="topbar-brand" aria-label="FixPlan">
+          <span class="brand-mark">F</span>
+          <span class="brand-word">FixPlan</span>
+        </div>
+
+        <div class="topbar-center" aria-label="Zentrale Kopfleiste">
+          <button class="top-action-tile ${this.app.currentArea === 'project' && this.app.currentView === 'projects' ? 'is-active' : ''}" type="button" data-header-projects>Projekte</button>
+          <button class="top-action-tile ${this.app.currentArea === 'project' && this.app.currentView === 'resources' ? 'is-active' : ''}" type="button" data-header-resources>Ressourcen</button>
+          <button class="quick-create" type="button" aria-label="Neuen Vorgang oder neue Aufgabe erstellen">+</button>
+          <button class="top-action-tile is-empty" type="button" aria-label="Freies Kopfzeilenfeld 1" tabindex="-1"></button>
+          <button class="top-action-tile is-empty" type="button" aria-label="Freies Kopfzeilenfeld 2" tabindex="-1"></button>
+        </div>
+
+        <div class="topbar-user-actions">
+          <div class="top-tabs" role="tablist" aria-label="Nutzerfunktionen"></div>
+          <button class="user-button ${this.app.currentArea === 'personal' ? 'is-active' : ''}" type="button" aria-label="Personal Workspace öffnen">NR</button>
+        </div>
+      </header>
+    `);
+
+    topbar.querySelector('.quick-create').addEventListener('click', () => this.app.openModal());
+    topbar.querySelector('[data-header-projects]').addEventListener('click', () => this.app.setProjectView('projects'));
+    topbar.querySelector('[data-header-resources]').addEventListener('click', () => this.app.setProjectView('resources'));
+    topbar.querySelector('.user-button').addEventListener('click', () => this.app.openPersonalWorkspace());
+
+    const tabs = topbar.querySelector('.top-tabs');
+    this.tabs.forEach(tab => {
+      const button = this.htmlToElement(`
+        <button class="top-tab ${this.app.currentArea === 'personal' && this.app.currentView === tab.view ? 'is-active' : ''}" type="button" role="tab">
+          ${tab.label}
+        </button>
+      `);
+      button.addEventListener('click', () => this.app.setPersonalView(tab.view));
+      tabs.append(button);
+    });
+
+    return topbar;
+  }
+}
+
+class TimeLogView extends Component {
+  constructor(app) {
+    super(app);
+    this.visibleStart = 6 * 60;
+    this.visibleEnd = 18 * 60;
+    this.slotHeight = 56;
+  }
+
+  render() {
+    const dateIso = DateService.toISO(this.app.selectedDate);
+    const allEvents = this.app.store.getEventsForDate(dateIso);
+    const events = this.filterEvents(allEvents);
+    const totalMinutes = allEvents.reduce((sum, event) => sum + this.duration(event), 0);
+
+    const view = this.htmlToElement(`
+      <main class="content">
+        <section class="view-header">
+          <div class="title-block">
+            <h1>Time Log</h1>
+            <p>Tagesgenaue Erfassung von Aufgaben und Arbeitszeiten.</p>
+          </div>
+          <div class="segmented" aria-label="Ansicht wechseln">
+            <button class="is-active" type="button">Tag</button>
+            <button type="button">Woche</button>
+            <button type="button">Meine Zeiten</button>
+          </div>
+          <div class="date-switcher">
+            <button class="icon-button" type="button" data-prev-day aria-label="Vorheriger Tag">‹</button>
+            <div class="date-chip">${DateService.formatDateChip(this.app.selectedDate)}</div>
+            <button class="icon-button" type="button" data-next-day aria-label="Nächster Tag">›</button>
+          </div>
+        </section>
+        <section class="timelog-grid">
+          <aside class="summary-panel"></aside>
+          <section class="timeline-panel">
+            <div class="timeline-hours"></div>
+            <div class="timeline-canvas"></div>
+          </section>
+        </section>
+      </main>
+    `);
+
+    view.querySelector('[data-prev-day]').addEventListener('click', () => this.app.changeSelectedDate(-1));
+    view.querySelector('[data-next-day]').addEventListener('click', () => this.app.changeSelectedDate(1));
+    view.querySelector('.summary-panel').append(this.renderSummary(allEvents, totalMinutes));
+    this.renderHours(view.querySelector('.timeline-hours'));
+    this.renderTimeline(view.querySelector('.timeline-canvas'), events);
+    return view;
+  }
+
+  filterEvents(events) {
+    const query = this.app.searchQuery.trim().toLowerCase();
+    if (!query) return events;
+    return events.filter(event => event.title.toLowerCase().includes(query) || event.description.toLowerCase().includes(query));
+  }
+
+  renderSummary(events, totalMinutes) {
+    const wrapper = this.htmlToElement(`
+      <div>
+        <div class="donut-card">
+          <div class="donut">
+            <div class="donut-label">
+              <div>
+                <span>${DateService.minutesToReadable(totalMinutes).replace(' h', '')}</span>
+                <span>${this.app.selectedDate.getDate()}.${this.app.selectedDate.getMonth() + 1}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="task-list"></div>
+      </div>
+    `);
+
+    const list = wrapper.querySelector('.task-list');
+    if (events.length === 0) {
+      list.append(this.htmlToElement(`<div class="empty-state">Noch keine Zeiten für diesen Tag erfasst.</div>`));
+      return wrapper;
+    }
+
+    events.forEach(event => {
+      list.append(this.htmlToElement(`
+        <div class="task-summary-row">
+          <strong>${event.title}</strong>
+          <span>${DateService.minutesToReadable(this.duration(event))}</span>
+        </div>
+      `));
+    });
+
+    return wrapper;
+  }
+
+  renderHours(container) {
+    for (let hour = 6; hour <= 18; hour += 1) {
+      const top = ((hour * 60 - this.visibleStart) / 60) * this.slotHeight;
+      const label = this.htmlToElement(`<div class="hour-label" style="top:${top}px">${hour}:00</div>`);
+      container.append(label);
+    }
+  }
+
+  renderTimeline(container, events) {
+    const canvasHeight = ((this.visibleEnd - this.visibleStart) / 60) * this.slotHeight;
+    container.style.minHeight = `${canvasHeight}px`;
+
+    const addButton = this.htmlToElement(`<button class="timeline-add" type="button" aria-label="Eintrag hinzufügen">+</button>`);
+    addButton.addEventListener('click', () => this.app.openModal());
+    container.append(addButton);
+
+    if (events.length === 0 && this.app.searchQuery) {
+      container.append(this.htmlToElement(`<div class="empty-state" style="position:absolute; left:20px; right:20px; top:270px;">Keine passenden Time Log Einträge gefunden.</div>`));
+      return;
+    }
+
+    events.forEach(event => {
+      const start = DateService.timeToMinutes(event.start);
+      const end = DateService.timeToMinutes(event.end);
+      const top = Math.max(0, ((start - this.visibleStart) / 60) * this.slotHeight);
+      const height = Math.max(42, ((end - start) / 60) * this.slotHeight);
+
+      const entry = this.htmlToElement(`
+        <article class="time-entry" style="top:${top}px; height:${height}px">
+          <div>
+            <div class="time-entry-title">${event.title}</div>
+            <div class="time-entry-time">${event.start} bis ${event.end}</div>
+          </div>
+          <div class="time-entry-handle" aria-hidden="true"></div>
+        </article>
+      `);
+      container.append(entry);
+    });
+  }
+
+  duration(event) {
+    return DateService.timeToMinutes(event.end) - DateService.timeToMinutes(event.start);
+  }
+}
+
+class CalendarView extends Component {
+  constructor(app) {
+    super(app);
+    this.weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+  }
+
+  render() {
+    const view = this.htmlToElement(`
+      <main class="content">
+        <section class="view-header">
+          <div class="title-block">
+            <h1>Kalender</h1>
+            <p>${DateService.formatMonthTitle(this.app.calendarDate)} im Projektüberblick.</p>
+          </div>
+          <div class="calendar-tools">
+            <button class="icon-button" type="button" data-prev-month aria-label="Vorheriger Monat">‹</button>
+            <button class="icon-button" type="button" data-next-month aria-label="Nächster Monat">›</button>
+          </div>
+          <div class="segmented" aria-label="Kalenderansicht wechseln">
+            <button type="button">Woche</button>
+            <button class="is-active" type="button">Monat</button>
+            <button type="button">Jahr</button>
+          </div>
+        </section>
+        <section class="calendar-panel">
+          <div class="calendar-grid"></div>
+        </section>
+      </main>
+    `);
+
+    view.querySelector('[data-prev-month]').addEventListener('click', () => this.app.changeCalendarMonth(-1));
+    view.querySelector('[data-next-month]').addEventListener('click', () => this.app.changeCalendarMonth(1));
+    this.renderGrid(view.querySelector('.calendar-grid'));
+    return view;
+  }
+
+  renderGrid(container) {
+    this.weekdays.forEach(day => container.append(this.htmlToElement(`<div class="weekday">${day}</div>`)));
+
+    const year = this.app.calendarDate.getFullYear();
+    const month = this.app.calendarDate.getMonth();
+    const firstOfMonth = new Date(year, month, 1);
+    const startOffset = (firstOfMonth.getDay() + 6) % 7;
+    const gridStart = new Date(year, month, 1 - startOffset);
+
+    for (let index = 0; index < 35; index += 1) {
+      const date = new Date(gridStart);
+      date.setDate(gridStart.getDate() + index);
+      container.append(this.renderDay(date, month));
+    }
+  }
+
+  renderDay(date, visibleMonth) {
+    const dateIso = DateService.toISO(date);
+    const events = this.filterEvents(this.app.store.getEventsForDate(dateIso));
+    const isMuted = date.getMonth() !== visibleMonth;
+    const isToday = dateIso === DateService.toISO(this.app.selectedDate);
+
+    const day = this.htmlToElement(`
+      <article class="calendar-day ${isMuted ? 'is-muted' : ''} ${isToday ? 'is-today' : ''}">
+        <div class="day-number">${String(date.getDate()).padStart(2, '0')}</div>
+      </article>
+    `);
+
+    events.slice(0, 3).forEach(event => {
+      day.append(this.htmlToElement(`<div class="calendar-entry">${event.start} ${event.title}</div>`));
+    });
+
+    if (events.length > 3) {
+      day.append(this.htmlToElement(`<div class="calendar-entry">+ ${events.length - 3} weitere</div>`));
+    }
+
+    const add = this.htmlToElement(`<button class="calendar-add-line" type="button">+</button>`);
+    add.addEventListener('click', event => {
+      event.stopPropagation();
+      this.app.selectedDate = DateService.fromISO(dateIso);
+      this.app.openModal(dateIso);
+    });
+
+    if (!isMuted && date.getDate() === 16) {
+      day.append(add);
+    }
+
+    day.addEventListener('dblclick', () => {
+      this.app.selectedDate = DateService.fromISO(dateIso);
+      this.app.setView('timelog');
+    });
+
+    return day;
+  }
+
+  filterEvents(events) {
+    const query = this.app.searchQuery.trim().toLowerCase();
+    if (!query) return events;
+    return events.filter(event => event.title.toLowerCase().includes(query) || event.description.toLowerCase().includes(query));
+  }
+}
+
+class TimeSheetView extends Component {
+  render() {
+    const searchedEvents = this.app.store.search(this.app.searchQuery);
+    const totalMinutes = searchedEvents.reduce((sum, event) => sum + this.duration(event), 0);
+    const uniqueDays = new Set(searchedEvents.map(event => event.date)).size;
+
+    const view = this.htmlToElement(`
+      <main class="content">
+        <section class="view-header">
+          <div class="title-block">
+            <h1>Time Sheet</h1>
+            <p>Verdichtete Übersicht der erfassten Zeiten.</p>
+          </div>
+          <div class="segmented" aria-label="Zeitraum wechseln">
+            <button class="is-active" type="button">Woche</button>
+            <button type="button">Monat</button>
+            <button type="button">Export</button>
+          </div>
+        </section>
+        <section class="sheet-panel">
+          <div class="sheet-cards">
+            <div class="metric-card"><span>Gesamtzeit</span><strong>${DateService.minutesToReadable(totalMinutes)}</strong></div>
+            <div class="metric-card"><span>Erfasste Einträge</span><strong>${searchedEvents.length}</strong></div>
+            <div class="metric-card"><span>Aktive Tage</span><strong>${uniqueDays}</strong></div>
+          </div>
+          <table class="sheet-table">
+            <thead>
+              <tr>
+                <th>Datum</th>
+                <th>Aufgabe</th>
+                <th>Zeitraum</th>
+                <th>Dauer</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </section>
+      </main>
+    `);
+
+    const tbody = view.querySelector('tbody');
+    searchedEvents
+      .sort((a, b) => `${a.date}${a.start}`.localeCompare(`${b.date}${b.start}`))
+      .forEach(event => {
+        const date = DateService.fromISO(event.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        tbody.append(this.htmlToElement(`
+          <tr>
+            <td>${date}</td>
+            <td>${event.title}</td>
+            <td>${event.start} bis ${event.end}</td>
+            <td>${DateService.minutesToReadable(this.duration(event))}</td>
+            <td><span class="status-pill">Erfasst</span></td>
+          </tr>
+        `));
+      });
+
+    if (searchedEvents.length === 0) {
+      tbody.append(this.htmlToElement(`
+        <tr>
+          <td colspan="5">Keine passenden Time Sheet Einträge gefunden.</td>
+        </tr>
+      `));
+    }
+
+    return view;
+  }
+
+  duration(event) {
+    return DateService.timeToMinutes(event.end) - DateService.timeToMinutes(event.start);
+  }
+}
+
+
+class GanttView extends Component {
+  constructor(app) {
+    super(app);
+    this.rowHeight = 62;
+    this.zoomMap = {
+      kompakt: 24,
+      standard: 34,
+      detail: 48
+    };
+  }
+
+  render() {
+    const tasks = this.app.ganttStore.getTasks(this.app.searchQuery);
+    const selectedTask = this.ensureSelection(tasks);
+    const range = this.getRange(tasks.length ? tasks : this.app.ganttStore.getTasks(''));
+    const dayWidth = this.zoomMap[this.app.ganttZoom] || this.zoomMap.standard;
+    const dayCount = DateService.diffDays(range.start, range.end) + 1;
+    const duration = tasks.reduce((sum, task) => sum + DateService.diffDays(task.start, task.end) + 1, 0);
+
+    const view = this.htmlToElement(`
+      <main class="content">
+        <section class="view-header">
+          <div class="title-block">
+            <h1>Gantt Chart</h1>
+            <p>Klassische Projektplanung mit Zeitachse, Aufgabenbalken und Fortschritt.</p>
+          </div>
+          <div class="segmented" aria-label="Zoom für Gantt Chart wechseln">
+            <button class="${this.app.ganttZoom === 'kompakt' ? 'is-active' : ''}" type="button" data-zoom="kompakt">Kompakt</button>
+            <button class="${this.app.ganttZoom === 'standard' ? 'is-active' : ''}" type="button" data-zoom="standard">Standard</button>
+            <button class="${this.app.ganttZoom === 'detail' ? 'is-active' : ''}" type="button" data-zoom="detail">Detail</button>
+          </div>
+        </section>
+        <section class="gantt-panel">
+          <div class="gantt-toolbar">
+            <div class="gantt-info">
+              <strong>${tasks.length} Aufgaben im Plan</strong>
+              <span>${dayCount} Tage Zeitachse · ${duration} geplante Aufgabentage</span>
+            </div>
+            <div class="gantt-actions">
+              <button class="ghost-button" type="button" data-add-gantt>+ Aufgabe hinzufügen</button>
+              <button class="ghost-button" type="button" data-reset-gantt>Beispielplan zurücksetzen</button>
+            </div>
+          </div>
+          <div class="gantt-board" style="--gantt-day-width:${dayWidth}px">
+            <aside class="gantt-sidebar">
+              <div class="gantt-sidebar-head">
+                <span>Aufgabe</span>
+                <span>Fortschritt</span>
+              </div>
+              <div class="gantt-task-list"></div>
+            </aside>
+            <div class="gantt-timeline">
+              <div class="gantt-chart" style="width:${Math.max(900, dayCount * dayWidth)}px">
+                <div class="gantt-header-grid"></div>
+                <div class="gantt-rows"></div>
+              </div>
+            </div>
+          </div>
+          <div class="gantt-detail-panel"></div>
+        </section>
+      </main>
+    `);
+
+    view.querySelectorAll('[data-zoom]').forEach(button => {
+      button.addEventListener('click', () => {
+        this.app.ganttZoom = button.dataset.zoom;
+        this.app.render();
+      });
+    });
+
+    view.querySelector('[data-add-gantt]').addEventListener('click', () => this.addTask());
+    view.querySelector('[data-reset-gantt]').addEventListener('click', () => this.resetTasks());
+
+    this.renderTaskList(view.querySelector('.gantt-task-list'), tasks);
+    this.renderTimeline(view, tasks, range, dayWidth, dayCount);
+    this.renderDetail(view.querySelector('.gantt-detail-panel'), selectedTask);
+    return view;
+  }
+
+  ensureSelection(tasks) {
+    if (!tasks.length) {
+      this.app.selectedGanttTaskId = null;
+      return null;
+    }
+
+    const selectedStillVisible = tasks.some(task => task.id === this.app.selectedGanttTaskId);
+    if (!selectedStillVisible) this.app.selectedGanttTaskId = tasks[0].id;
+    return this.app.ganttStore.getTask(this.app.selectedGanttTaskId);
+  }
+
+  getRange(tasks) {
+    const starts = tasks.map(task => task.start).sort();
+    const ends = tasks.map(task => task.end).sort();
+    const start = starts[0] || '2024-04-01';
+    const end = ends[ends.length - 1] || '2024-04-30';
+    return {
+      start: DateService.addDaysToISO(start, -2),
+      end: DateService.addDaysToISO(end, 4)
+    };
+  }
+
+  renderTaskList(container, tasks) {
+    if (!tasks.length) {
+      container.append(this.htmlToElement(`<div class="gantt-empty">Keine passenden Gantt Aufgaben gefunden.</div>`));
+      return;
+    }
+
+    tasks.forEach(task => {
+      const row = this.htmlToElement(`
+        <button class="gantt-task-row ${task.id === this.app.selectedGanttTaskId ? 'is-selected' : ''}" type="button">
+          <span>
+            <span class="gantt-task-title">${task.title}</span>
+            <span class="gantt-task-meta">${task.owner} · ${DateService.formatRange(task.start, task.end)}</span>
+          </span>
+          <span class="gantt-progress-small">${task.progress}%</span>
+        </button>
+      `);
+      row.addEventListener('click', () => this.selectTask(task.id));
+      container.append(row);
+    });
+  }
+
+  renderTimeline(view, tasks, range, dayWidth, dayCount) {
+    const header = view.querySelector('.gantt-header-grid');
+    const rows = view.querySelector('.gantt-rows');
+    const chart = view.querySelector('.gantt-chart');
+
+    for (let index = 0; index < dayCount; index += 1) {
+      const dateIso = DateService.addDaysToISO(range.start, index);
+      const date = DateService.fromISO(dateIso);
+      const weekday = date.getDay();
+      const isWeekend = weekday === 0 || weekday === 6;
+      const isMonthStart = date.getDate() === 1;
+      header.append(this.htmlToElement(`
+        <div class="gantt-day-cell ${isWeekend ? 'is-weekend' : ''} ${isMonthStart ? 'is-month-start' : ''}">
+          ${date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
+        </div>
+      `));
+    }
+
+    tasks.forEach(task => {
+      const row = this.htmlToElement(`<div class="gantt-row-grid"></div>`);
+      for (let index = 0; index < dayCount; index += 1) {
+        const date = DateService.fromISO(DateService.addDaysToISO(range.start, index));
+        const weekday = date.getDay();
+        row.append(this.htmlToElement(`<div class="gantt-day-cell ${weekday === 0 || weekday === 6 ? 'is-weekend' : ''}">.</div>`));
+      }
+
+      const left = DateService.diffDays(range.start, task.start) * dayWidth;
+      const width = (DateService.diffDays(task.start, task.end) + 1) * dayWidth;
+      const bar = this.htmlToElement(`
+        <article class="gantt-bar ${task.id === this.app.selectedGanttTaskId ? 'is-selected' : ''}" style="left:${left}px; width:${width}px; --progress:${task.progress}%" data-task-id="${task.id}">
+          <span class="gantt-bar-progress"></span>
+          <span class="gantt-resize-handle left" data-resize="left"></span>
+          <span class="gantt-bar-label">${task.title}</span>
+          <span class="gantt-resize-handle right" data-resize="right"></span>
+        </article>
+      `);
+      this.bindBarInteraction(bar, task, range, dayWidth);
+      row.append(bar);
+      rows.append(row);
+    });
+
+    const todayIso = '2024-04-16';
+    if (todayIso >= range.start && todayIso <= range.end) {
+      const todayLeft = DateService.diffDays(range.start, todayIso) * dayWidth;
+      chart.append(this.htmlToElement(`<div class="gantt-today-line" style="left:${todayLeft}px"></div>`));
+    }
+  }
+
+  renderDetail(container, task) {
+    if (!task) {
+      container.append(this.htmlToElement(`<div class="gantt-empty">Wähle eine Aufgabe aus oder lege eine neue Aufgabe an.</div>`));
+      return;
+    }
+
+    container.innerHTML = `
+      <div>
+        <span class="gantt-detail-title">${task.title}</span>
+        <span class="gantt-detail-meta">${task.status} · ${task.owner} · ${DateService.formatRange(task.start, task.end)}</span>
+      </div>
+      <label class="progress-control">
+        Fortschritt: <span>${task.progress}%</span>
+        <input type="range" min="0" max="100" step="5" value="${task.progress}" data-progress-slider />
+      </label>
+      <div class="gantt-detail-actions">
+        <button class="ghost-button" type="button" data-move-left>← 1 Tag</button>
+        <button class="ghost-button" type="button" data-move-right>1 Tag →</button>
+        <button class="ghost-button" type="button" data-delete-task>Löschen</button>
+      </div>
+    `;
+
+    container.querySelector('[data-progress-slider]').addEventListener('input', event => {
+      this.app.ganttStore.updateTask(task.id, { progress: Number(event.target.value) });
+      this.app.renderContentOnly();
+    });
+    container.querySelector('[data-move-left]').addEventListener('click', () => this.moveTask(task.id, -1));
+    container.querySelector('[data-move-right]').addEventListener('click', () => this.moveTask(task.id, 1));
+    container.querySelector('[data-delete-task]').addEventListener('click', () => {
+      this.app.ganttStore.deleteTask(task.id);
+      this.app.selectedGanttTaskId = null;
+      this.app.render();
+    });
+  }
+
+  bindBarInteraction(bar, task, range, dayWidth) {
+    let interaction = null;
+
+    bar.addEventListener('pointerdown', event => {
+      const resize = event.target.dataset.resize || null;
+      interaction = {
+        taskId: task.id,
+        startX: event.clientX,
+        originalStart: task.start,
+        originalEnd: task.end,
+        mode: resize || 'move'
+      };
+      bar.setPointerCapture(event.pointerId);
+      this.selectTask(task.id, false);
+    });
+
+    bar.addEventListener('pointermove', event => {
+      if (!interaction) return;
+      const deltaDays = Math.round((event.clientX - interaction.startX) / dayWidth);
+      if (deltaDays === 0) return;
+
+      let nextStart = interaction.originalStart;
+      let nextEnd = interaction.originalEnd;
+      if (interaction.mode === 'move') {
+        nextStart = DateService.addDaysToISO(interaction.originalStart, deltaDays);
+        nextEnd = DateService.addDaysToISO(interaction.originalEnd, deltaDays);
+      }
+      if (interaction.mode === 'left') {
+        nextStart = DateService.addDaysToISO(interaction.originalStart, deltaDays);
+        if (nextStart > nextEnd) nextStart = nextEnd;
+      }
+      if (interaction.mode === 'right') {
+        nextEnd = DateService.addDaysToISO(interaction.originalEnd, deltaDays);
+        if (nextEnd < nextStart) nextEnd = nextStart;
+      }
+      this.app.ganttStore.updateTask(task.id, { start: nextStart, end: nextEnd });
+      this.app.renderContentOnly();
+    });
+
+    bar.addEventListener('pointerup', () => { interaction = null; });
+    bar.addEventListener('click', event => {
+      event.stopPropagation();
+      this.selectTask(task.id);
+    });
+  }
+
+  addTask() {
+    const allTasks = this.app.ganttStore.getTasks('');
+    const last = allTasks[allTasks.length - 1];
+    const start = last ? DateService.addDaysToISO(last.end, 1) : '2024-04-01';
+    const end = DateService.addDaysToISO(start, 4);
+    const task = this.app.ganttStore.addTask({
+      title: `Neue Aufgabe ${allTasks.length + 1}`,
+      owner: 'Team',
+      start,
+      end,
+      progress: 0,
+      status: 'Offen'
+    });
+    this.app.selectedGanttTaskId = task.id;
+    this.app.render();
+  }
+
+  resetTasks() {
+    window.localStorage.removeItem(this.app.ganttStore.storageKey);
+    this.app.ganttStore = new GanttStore();
+    this.app.selectedGanttTaskId = this.app.ganttStore.tasks[0]?.id || null;
+    this.app.render();
+  }
+
+  selectTask(id, rerender = true) {
+    this.app.selectedGanttTaskId = Number(id);
+    if (rerender) this.app.renderContentOnly();
+  }
+
+  moveTask(id, days) {
+    const task = this.app.ganttStore.getTask(id);
+    if (!task) return;
+    this.app.ganttStore.updateTask(id, {
+      start: DateService.addDaysToISO(task.start, days),
+      end: DateService.addDaysToISO(task.end, days)
+    });
+    this.app.renderContentOnly();
+  }
+}
+
+
+class NotesStore {
+  constructor() {
+    this.storageKey = 'fixplan-prototype-workspace-notes';
+  }
+
+  getNotes() {
+    return window.localStorage.getItem(this.storageKey) || '';
+  }
+
+  saveNotes(value) {
+    window.localStorage.setItem(this.storageKey, value);
+  }
+}
+
+class WorkspaceView extends Component {
+  render() {
+    const noteValue = this.app.notesStore.getNotes();
+    const project = this.app.projectStore;
+    const tasks = project.getAssignedTasks();
+    const resources = project.getResources();
+    const pipeline = project.getPipeline();
+    const ganttTasks = this.app.ganttStore.getTasks('').slice(0, 5);
+    const view = this.htmlToElement(`
+      <main class="content">
+        <section class="view-header">
+          <div class="title-block">
+            <h1>Workspace</h1>
+            <p>Persönliches Dashboard mit kompakten Auszügen aus dem Beispielprojekt ${project.name}.</p>
+          </div>
+        </section>
+
+        <section class="workspace-layout">
+          <article class="workspace-project-banner">
+            <div>
+              <span>Aktuelles Beispielprojekt</span>
+              <h2>${project.name}</h2>
+              <p>Überblick über Vorgänge, Zeitplan, Ressourcen und Pipeline.</p>
+            </div>
+            <div class="dashboard-kpi-strip">
+              <div class="dashboard-kpi"><strong>${project.getOpenTaskCount()}</strong><span>offene Vorgänge</span></div>
+              <div class="dashboard-kpi"><strong>${project.getCompletionAverage()}%</strong><span>Fortschritt</span></div>
+              <div class="dashboard-kpi"><strong>${resources.length}</strong><span>Ressourcen</span></div>
+            </div>
+          </article>
+
+          <section class="dashboard-widget-grid">
+            <article class="dashboard-widget">
+              <div class="widget-header">
+                <div>
+                  <h2>Vorgangsliste</h2>
+                  <p>Zugeordnete Aufgaben aus ${project.name}.</p>
+                </div>
+                <button class="widget-action" type="button" data-open-project="tasks">Öffnen</button>
+              </div>
+              <div class="task-widget-list">
+                ${tasks.map(task => `
+                  <div class="assigned-task-row">
+                    <div>
+                      <strong>${this.escape(task.title)}</strong>
+                      <span>${this.escape(task.owner)} · fällig ${DateService.formatShortDate(task.due)} · ${task.progress}%</span>
+                    </div>
+                    <em class="task-status-pill">${this.escape(task.status)}</em>
+                  </div>
+                `).join('')}
+              </div>
+            </article>
+
+            <article class="dashboard-widget">
+              <div class="widget-header">
+                <div>
+                  <h2>Gantt Chart</h2>
+                  <p>Mini Zeitplan der wichtigsten Projektphasen.</p>
+                </div>
+                <button class="widget-action" type="button" data-open-project="gantt">Öffnen</button>
+              </div>
+              <div class="mini-gantt">
+                ${ganttTasks.map(task => this.renderMiniGanttRow(task)).join('')}
+              </div>
+            </article>
+
+            <article class="dashboard-widget">
+              <div class="widget-header">
+                <div>
+                  <h2>Ressourcen/Kapazitäten</h2>
+                  <p>Auslastung und geplante Aufgaben der zentralen Rollen.</p>
+                </div>
+                <button class="widget-action" type="button" data-open-project="resources">Öffnen</button>
+              </div>
+              <div class="resource-list">
+                ${resources.map(resource => `
+                  <div class="resource-row">
+                    <div>
+                      <span class="resource-name">${this.escape(resource.name)}</span>
+                      <span class="resource-owner">${this.escape(resource.owner)}</span>
+                    </div>
+                    <div class="resource-track"><div class="resource-bar" style="width:${resource.capacity}%"></div></div>
+                    <span class="resource-value">${resource.capacity}%</span>
+                  </div>
+                `).join('')}
+              </div>
+            </article>
+
+            <article class="dashboard-widget">
+              <div class="widget-header">
+                <div>
+                  <h2>Pipeline</h2>
+                  <p>Arbeitsfluss für ${project.name}.</p>
+                </div>
+                <button class="widget-action" type="button" data-open-project="pipeline">Öffnen</button>
+              </div>
+              <div class="pipeline-board">
+                ${pipeline.map(column => `
+                  <section class="pipeline-column">
+                    <header>
+                      <strong>${this.escape(column.name)}</strong>
+                      <span class="pipeline-count-pill">${column.cards.length}</span>
+                    </header>
+                    ${column.cards.map(card => `<div class="pipeline-card">${this.escape(card)}</div>`).join('')}
+                  </section>
+                `).join('')}
+              </div>
+            </article>
+          </section>
+
+          <article class="notes-card">
+            <div class="notes-card-header">
+              <div>
+                <h2>Notizen</h2>
+                <p>Zentrales Freitextfeld für Projektnotizen zum ${project.name}.</p>
+              </div>
+              <span class="notes-status">Automatisch gespeichert</span>
+            </div>
+            <textarea class="notes-field" placeholder="Projektnotizen hier eintragen...">${this.escape(noteValue)}</textarea>
+          </article>
+        </section>
+      </main>
+    `);
+
+    view.querySelectorAll('[data-open-project]').forEach(button => {
+      button.addEventListener('click', () => this.app.setProjectView(button.dataset.openProject));
+    });
+    view.querySelector('.notes-field').addEventListener('input', event => this.app.notesStore.saveNotes(event.target.value));
+    return view;
+  }
+
+  renderMiniGanttRow(task) {
+    const start = DateService.fromISO(task.start);
+    const end = DateService.fromISO(task.end);
+    const rangeStart = DateService.fromISO('2024-04-01');
+    const left = Math.max(0, Math.round(((start - rangeStart) / 86400000) * 3.7));
+    const width = Math.max(34, Math.round((((end - start) / 86400000) + 1) * 3.7));
+    return `
+      <div class="mini-gantt-label">${this.escape(task.title)}</div>
+      <div class="mini-gantt-track">
+        <div class="mini-gantt-bar" style="left:${left}%; width:${Math.min(width, 100 - left)}%"></div>
+      </div>
+    `;
+  }
+
+  escape(value) {
+    return String(value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;');
+  }
+}
+
+class ProfileView extends Component {
+  render() {
+    return this.htmlToElement(`
+      <main class="content">
+        <section class="view-header">
+          <div class="title-block">
+            <h1>Profil</h1>
+            <p>Persönliche Einstellungen und Nutzerdaten.</p>
+          </div>
+        </section>
+        <section class="profile-grid">
+          <article class="profile-card">
+            <span>Name</span>
+            <strong>Niklas Radestock</strong>
+            <p>Der Name wird im Personal Workspace oben links angezeigt.</p>
+          </article>
+          <article class="profile-card">
+            <span>Initialen</span>
+            <strong>NR</strong>
+            <p>Die Initialen bleiben oben rechts als Einstieg in den Workspace sichtbar.</p>
+          </article>
+          <article class="profile-card">
+            <span>Bereich</span>
+            <strong>Nutzerfunktionen</strong>
+            <p>Timesheet, Time Log, Kalender und Profil sind nutzerbezogen gebündelt.</p>
+          </article>
+        </section>
+      </main>
+    `);
+  }
+}
+
+
+class ProjectListView extends Component {
+  render() {
+    const project = this.app.projectStore;
+    const tasks = project.getAssignedTasks();
+    const resources = project.getResources();
+    const view = this.htmlToElement(`
+      <main class="content">
+        <section class="view-header">
+          <div class="title-block">
+            <h1>Projekte</h1>
+            <p>Projektliste mit dem aktuellen Beispielprojekt und den wichtigsten Einstiegspunkten.</p>
+          </div>
+        </section>
+        <section class="project-list-grid">
+          <article class="project-list-card">
+            <span>Aktives Projekt</span>
+            <h2>${project.name}</h2>
+            <p>Demo Projekt für Vorgänge, Aufgaben, Ressourcenplanung, Gantt Chart und Pipeline.</p>
+            <div class="project-list-meta">
+              <div><strong>${tasks.length}</strong><small>Vorgänge</small></div>
+              <div><strong>${resources.length}</strong><small>Ressourcen</small></div>
+              <div><strong>${project.getCompletionAverage()}%</strong><small>Fortschritt</small></div>
+            </div>
+            <button class="widget-action" type="button" data-open-project="tasks">Projekt öffnen</button>
+          </article>
+          <article class="project-list-card">
+            <span>Projektstatus</span>
+            <h2>In Arbeit</h2>
+            <p>Die zentralen Aufgaben laufen im DemoProjekt. Der nächste Fokus liegt auf Ressourcen und Sprint Demo.</p>
+            <button class="widget-action" type="button" data-open-project="pipeline">Pipeline ansehen</button>
+          </article>
+          <article class="project-list-card">
+            <span>Zeitplan</span>
+            <h2>April 2024</h2>
+            <p>Der Projektplan ist über das Gantt Chart erreichbar und bildet die wichtigsten Phasen ab.</p>
+            <button class="widget-action" type="button" data-open-project="gantt">Gantt Chart öffnen</button>
+          </article>
+        </section>
+      </main>
+    `);
+
+    view.querySelectorAll('[data-open-project]').forEach(button => {
+      button.addEventListener('click', () => this.app.setProjectView(button.dataset.openProject));
+    });
+
+    return view;
+  }
+}
+
+class TaskListProjectView extends Component {
+  render() {
+    const tasks = this.app.projectStore.getAssignedTasks();
+    const view = this.htmlToElement(`
+      <main class="content">
+        <section class="view-header">
+          <div class="title-block">
+            <h1>Vorgänge</h1>
+            <p>Zugeordnete Aufgaben für das Beispielprojekt ${this.app.projectStore.displayName || this.app.projectStore.name}.</p>
+          </div>
+        </section>
+        <section class="project-detail-card">
+          <table class="project-detail-table">
+            <thead><tr><th>Vorgang</th><th>Zugeordnet</th><th>Fällig</th><th>Status</th><th>Fortschritt</th><th>Öffnen</th></tr></thead>
+            <tbody>
+              ${tasks.map(task => `
+                <tr class="is-clickable" data-open-task="${task.id}">
+                  <td><strong>${task.title}</strong></td>
+                  <td>${task.owner}</td>
+                  <td>${DateService.formatShortDate(task.due)}</td>
+                  <td><span class="task-status-pill">${task.status}</span></td>
+                  <td>${task.progress}%</td>
+                  <td><button class="task-row-button" type="button" data-open-task-button="${task.id}">Details</button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </section>
+      </main>
+    `);
+
+    view.querySelectorAll('[data-open-task], [data-open-task-button]').forEach(node => {
+      node.addEventListener('click', event => {
+        const id = Number(event.currentTarget.getAttribute('data-open-task') || event.currentTarget.getAttribute('data-open-task-button'));
+        this.app.openTaskDetail(id);
+      });
+    });
+
+    return view;
+  }
+}
+
+
+class TaskDetailView extends Component {
+  render() {
+    const task = this.app.projectStore.getTaskById(this.app.selectedProjectTaskId);
+    const detail = this.app.projectStore.getTaskDetail(task.id);
+    const ganttTasks = this.app.ganttStore.tasks.slice(0, 4);
+    const resources = this.app.projectStore.getResources();
+    const pipeline = this.app.projectStore.getPipeline();
+    const statusSummary = this.app.projectStore.getTaskStatusSummary();
+    const isRailOpen = this.app.projectWidgetsOpen;
+    const projectName = this.app.projectStore.displayName || this.app.projectStore.name;
+    const load = Math.round(resources.reduce((sum, resource) => sum + resource.capacity, 0) / resources.length);
+
+    const view = this.htmlToElement(`
+      <main class="content">
+        <section class="task-page-header">
+          <div class="task-page-context">
+            <h1>${projectName}</h1>
+            <div class="task-breadcrumbs">
+              <button type="button" data-open-project="tasks">Vorgänge</button>
+              <span>›</span>
+              <button type="button" data-open-project="tasks">Aufgabenübersicht</button>
+              <span>›</span>
+              <strong>${this.escape(task.title)}</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="task-detail-layout ${isRailOpen ? '' : 'is-rail-collapsed'}">
+          <div class="task-detail-main">
+            <div class="task-title-row">
+              <h2>${this.escape(task.title)}</h2>
+              <span class="detail-status-badge ${this.statusClass(task.status)}">${this.escape(task.status)}</span>
+            </div>
+
+            <div class="task-main-grid">
+              <div class="task-main-column">
+                <article class="task-detail-card">
+                  <div class="task-card-inner">
+                    <div class="task-section-label">Allgemeine Informationen</div>
+                    <div class="task-general-box">${this.escape(detail.generalInfo)}</div>
+                  </div>
+                </article>
+
+                <div class="task-meta-grid">
+                  <article class="task-detail-card">
+                    <div class="task-card-inner">
+                      <div class="task-section-label">Zeitliche Eckdaten</div>
+                      <div class="task-info-list">
+                        ${this.renderInfoRow('Fälligkeit', this.formatDate(task.due))}
+                        ${this.renderInfoRow('Start der Bearbeitung', this.formatDate(detail.startWork))}
+                        ${this.renderInfoRow('Geplantes Ende', this.formatDate(detail.plannedEnd))}
+                        ${this.renderInfoRow('Abhängigkeiten von anderen Aufgaben', `<span class="dependency-pill">${this.escape(detail.dependency)}</span>`, true)}
+                      </div>
+                    </div>
+                  </article>
+
+                  <article class="task-detail-card">
+                    <div class="task-card-inner">
+                      <div class="task-section-label">Aufwands- und Auftragsmanagement</div>
+                      <div class="task-effort-list">
+                        ${this.renderInfoRow('Geschätzter Aufwand', `<span class="effort-pill">${this.escape(detail.estimatedEffort)}</span>`, true)}
+                        ${this.renderInfoRow('Geplanter Aufwand', `<span class="effort-pill">${this.escape(detail.plannedEffort)}</span>`, true)}
+                        ${this.renderInfoRow('Verbleibender Aufwand', `<span class="effort-pill">${this.escape(detail.remainingEffort)}</span>`, true)}
+                        ${this.renderInfoRow('Genutzte Zeiten', `<span class="effort-pill">${this.escape(detail.spentEffort)}</span>`, true)}
+                      </div>
+                      <div class="task-progress-block">
+                        <div class="task-progress-track"><div class="task-progress-fill" style="width:${detail.progress}%"></div></div>
+                        <div class="task-progress-value">${detail.progress}%</div>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+
+                <article class="task-detail-card">
+                  <div class="task-card-inner">
+                    <div class="task-section-label">Beschreibung</div>
+                    <p class="task-description">${this.escape(detail.description)}</p>
+                  </div>
+                </article>
+              </div>
+
+              <div class="task-comments-column">
+                <article class="task-detail-card">
+                  <div class="task-card-inner">
+                    <div class="task-section-label">Kommentare</div>
+                    <div class="comment-thread">
+                      ${detail.comments.map(comment => this.renderComment(comment)).join('')}
+                    </div>
+                    <div class="comment-composer">
+                      <textarea placeholder="Kommentar verfassen..."></textarea>
+                      <button class="comment-send" type="button" aria-label="Kommentar senden">➤</button>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+
+          <aside class="task-widget-rail">
+            <article class="project-widget-card">
+              <div class="widget-head">
+                <h3>Gantt Chart</h3>
+                <span class="widget-chevron">›</span>
+              </div>
+              <div class="widget-content">
+                ${this.renderRailGantt(ganttTasks)}
+                <button class="widget-link" type="button" data-open-project="gantt">Zum Gantt Chart →</button>
+              </div>
+            </article>
+
+            <article class="project-widget-card">
+              <div class="widget-head">
+                <h3>Ressourcen Überblick</h3>
+                <span class="widget-chevron">›</span>
+              </div>
+              <div class="widget-content">
+                <div class="resource-donut-wrap">
+                  <div class="resource-donut">
+                    <div class="resource-donut-label"><div><strong>${load}%</strong><span>Auslastung</span></div></div>
+                  </div>
+                  <div class="resource-legend">
+                    <div class="resource-legend-row"><span class="legend-dot is-green"></span><span>Verfügbar</span><strong>${Math.max(0, 100 - load)}%</strong></div>
+                    <div class="resource-legend-row"><span class="legend-dot is-blue"></span><span>Geplant</span><strong>${Math.min(100, load - 16)}%</strong></div>
+                    <div class="resource-legend-row"><span class="legend-dot is-yellow"></span><span>Überlastet</span><strong>${Math.max(0, load - 52)}%</strong></div>
+                  </div>
+                </div>
+                <button class="widget-link" type="button" data-open-project="resources">Zum Ressourcenplan →</button>
+              </div>
+            </article>
+
+            <article class="project-widget-card">
+              <div class="widget-head">
+                <h3>Pipeline</h3>
+                <span class="widget-chevron">›</span>
+              </div>
+              <div class="widget-content">
+                <div class="rail-pipeline-grid">
+                  ${pipeline.map((column, index) => `<div class="rail-pipeline-box ${['is-blue', 'is-green', 'is-yellow', 'is-purple'][index] || 'is-blue'}"><small>${this.escape(column.name)}</small><strong>${column.cards.length}</strong></div>`).join('')}
+                </div>
+                <button class="widget-link" type="button" data-open-project="pipeline">Zur Pipeline →</button>
+              </div>
+            </article>
+
+            <article class="project-widget-card">
+              <div class="widget-head">
+                <h3>Aufgaben Status</h3>
+                <span class="widget-chevron">›</span>
+              </div>
+              <div class="widget-content">
+                <div class="status-summary-list">
+                  ${statusSummary.map(item => `
+                    <div class="status-summary-row">
+                      <span>${this.escape(item.label)}</span>
+                      <strong>${item.value}</strong>
+                      <div class="status-mini-track"><div class="status-mini-fill is-${item.color}" style="width:${item.fill}%"></div></div>
+                    </div>
+                  `).join('')}
+                </div>
+                <button class="widget-link" type="button" data-open-project="tasks">Zur Aufgabenübersicht →</button>
+              </div>
+            </article>
+          </aside>
+
+          <button class="task-rail-toggle" type="button" data-toggle-task-rail aria-label="Widget Sidebar ein oder ausblenden">${isRailOpen ? '«' : '»'}</button>
+        </section>
+      </main>
+    `);
+
+    view.querySelectorAll('[data-open-project]').forEach(button => {
+      button.addEventListener('click', event => {
+        this.app.setProjectView(event.currentTarget.getAttribute('data-open-project'));
+      });
+    });
+
+    view.querySelector('[data-toggle-task-rail]')?.addEventListener('click', () => {
+      this.app.toggleProjectWidgets();
+    });
+
+    view.querySelector('.comment-send')?.addEventListener('click', () => {
+      window.alert('Kommentar senden ist im Prototyp vorbereitet.');
+    });
+
+    return view;
+  }
+
+  renderInfoRow(label, value, isHtml = false) {
+    return `
+      <div class="task-info-row">
+        <span>${this.escape(label)}</span>
+        ${isHtml ? value : `<strong>${this.escape(value)}</strong>`}
+      </div>
+    `;
+  }
+
+  renderComment(comment) {
+    return `
+      <div class="comment-item">
+        <div class="comment-dot"></div>
+        <div class="comment-card is-${comment.color}">
+          <h4>${this.escape(comment.type)}</h4>
+          <p>${this.escape(comment.text)}</p>
+          <small>${this.escape(comment.meta)}</small>
+        </div>
+      </div>
+    `;
+  }
+
+  renderRailGantt(tasks) {
+    const header = `
+      <div></div>
+      <div>KW 19</div>
+      <div>KW 20</div>
+      <div>KW 21</div>
+      <div>KW 22</div>
+    `;
+    const rows = tasks.map((task, index) => {
+      const classes = ['rail-bar-blue', 'rail-bar-green', 'rail-bar-yellow', 'rail-bar-purple'];
+      const startCol = Math.min(index + 2, 5);
+      return `
+        <div class="rail-gantt-label">${this.escape(task.title.split(' ').slice(0, 2).join(' '))}</div>
+        <div class="rail-bar-cell ${startCol === 2 ? classes[index] : ''}">${startCol === 2 ? '<span></span>' : ''}</div>
+        <div class="rail-bar-cell ${startCol === 3 ? classes[index] : ''}">${startCol === 3 ? '<span></span>' : ''}</div>
+        <div class="rail-bar-cell ${startCol === 4 ? classes[index] : ''}">${startCol === 4 ? '<span></span>' : ''}</div>
+        <div class="rail-bar-cell ${startCol === 5 ? classes[index] : ''}">${startCol === 5 ? '<span></span>' : ''}</div>
+      `;
+    }).join('');
+    return `<div class="rail-gantt-grid">${header}${rows}</div>`;
+  }
+
+  statusClass(status) {
+    const key = String(status).toLowerCase().replaceAll(' ', '-');
+    if (key === 'in-arbeit') return 'is-in-arbeit';
+    return `is-${key}`;
+  }
+
+  formatDate(value) {
+    return DateService.fromISO(value).toLocaleDateString('de-DE');
+  }
+
+  escape(value) {
+    return String(value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;');
+  }
+}
+
+class ResourcePlanView extends Component {
+  render() {
+    const days = this.getPlanningDays();
+    const resourceRows = this.getResourceOverviewRows();
+    const assignedRows = resourceRows.filter(row => !row.isUnassigned);
+    const unassignedRows = resourceRows.filter(row => row.isUnassigned);
+    const summary = this.getSummary(resourceRows, days);
+
+    const view = this.htmlToElement(`
+      <main class="content resource-overview-shell">
+        <section class="view-header">
+          <div class="title-block">
+            <h1>Ressourcenüberblick</h1>
+            <p>Tagesbasierte Kapazitätsplanung für das Beispielprojekt ${this.app.projectStore.name}.</p>
+          </div>
+        </section>
+
+        <section class="resource-overview-card">
+          <div class="resource-overview-toolbar">
+            <div class="resource-filter-pills" aria-label="Ressourcen Kennzahlen">
+              <span class="resource-pill">Ursprüngliche Kapazität</span>
+              <span class="resource-pill is-active">Verbleibende Kapazität</span>
+              <span class="resource-pill">Verplante Kapazität</span>
+            </div>
+            <div class="resource-calendar-actions">
+              <input class="resource-search" type="search" placeholder="Suche..." aria-label="Ressourcen suchen" />
+              <span class="resource-pill is-active">Tagesansicht</span>
+              <span class="resource-pill">Wochenansicht</span>
+              <button class="resource-small-button" type="button" aria-label="Vorheriger Zeitraum">‹</button>
+              <button class="resource-small-button" type="button" aria-label="Heute">⌂</button>
+              <button class="resource-small-button" type="button" aria-label="Nächster Zeitraum">›</button>
+            </div>
+          </div>
+
+          <div class="resource-planner-scroll">
+            <div class="resource-planner" style="--days:${days.length}">
+              ${this.renderDateHeader(days)}
+              ${assignedRows.map(row => this.renderResourceGroup(row, days)).join('')}
+              <button class="resource-add-row" type="button" aria-label="Ressource hinzufügen">+</button>
+              <div class="resource-unassigned">
+                ${unassignedRows.map(row => this.renderResourceGroup(row, days)).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div class="resource-summary-strip">
+            <div class="resource-summary-card"><strong>${summary.resources}</strong><span>geplante Ressourcen</span></div>
+            <div class="resource-summary-card"><strong>${summary.assignments}</strong><span>Aufgaben im Plan</span></div>
+            <div class="resource-summary-card"><strong>${summary.overloadedDays}</strong><span>Tage mit Überlastung</span></div>
+            <div class="resource-summary-card"><strong>${summary.unassignedDemand} h</strong><span>nicht zugewiesene Arbeit</span></div>
+          </div>
+        </section>
+      </main>
+    `);
+
+    view.querySelector('.resource-add-row').addEventListener('click', () => {
+      window.alert('Neue Ressource hinzufügen. Im Prototyp ist dies als nächster Dialog vorgesehen.');
+    });
+
+    return view;
+  }
+
+  getPlanningDays() {
+    return Array.from({ length: 24 }, (_, index) => {
+      const date = new Date(2024, 3, index + 1);
+      return {
+        index,
+        label: date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }),
+        weekday: date.toLocaleDateString('de-DE', { weekday: 'short' }),
+        isWeekend: date.getDay() === 0 || date.getDay() === 6
+      };
+    });
+  }
+
+  getResourceOverviewRows() {
+    return [
+      {
+        name: 'Ressource 1',
+        baseCapacity: 8,
+        assignments: [
+          { label: 'Aufgabe 1', start: 2, duration: 3, planned: 8, color: 'red', lane: 0 },
+          { label: 'Aufgabe 2', start: 12, duration: 3, planned: 6, color: 'red', lane: 0 },
+          { label: 'Aufgabe 3', start: 14, duration: 2, planned: 4, color: 'blue', lane: 1 },
+          { label: 'Aufgabe 4', start: 19, duration: 2, planned: 6, color: 'red', lane: 0 },
+          { label: 'Aufgabe 5', start: 21, duration: 2, planned: 4, color: 'blue', lane: 1 }
+        ]
+      },
+      {
+        name: 'Ressource 2',
+        baseCapacity: 8,
+        assignments: [
+          { label: 'Aufgabe 1', start: 2, duration: 3, planned: 8, color: 'red', lane: 0 },
+          { label: 'Aufgabe 2', start: 7, duration: 2, planned: 4, color: 'red', lane: 0 },
+          { label: 'Aufgabe 3', start: 12, duration: 2, planned: 4, color: 'red', lane: 0 },
+          { label: 'Aufgabe 4', start: 14, duration: 2, planned: 4, color: 'blue', lane: 1 }
+        ]
+      },
+      {
+        name: 'Ressource 3',
+        baseCapacity: 8,
+        assignments: [
+          { label: 'Aufgabe 1', start: 2, duration: 3, planned: 8, color: 'red', lane: 0 },
+          { label: 'Aufgabe 2', start: 6, duration: 2, planned: 8, color: 'red', lane: 0 },
+          { label: 'Aufgabe 3', start: 7, duration: 2, planned: 4, color: 'green', lane: 2 },
+          { label: 'Aufgabe 4', start: 8, duration: 2, planned: 4, color: 'blue', lane: 1 },
+          { label: 'Aufgabe 5', start: 12, duration: 3, planned: 8, color: 'red', lane: 0 }
+        ]
+      },
+      {
+        name: 'nicht zugewiesen',
+        baseCapacity: 0,
+        isUnassigned: true,
+        assignments: [
+          { label: 'Aufgabe', start: 2, duration: 2, planned: 14, color: 'red', lane: 0 },
+          { label: 'Aufgabe', start: 3, duration: 4, planned: 6, color: 'blue', lane: 1 },
+          { label: 'Aufgabe', start: 8, duration: 5, planned: 12, color: 'red', lane: 0 },
+          { label: 'Aufgabe', start: 8, duration: 4, planned: 4, color: 'blue', lane: 1 },
+          { label: 'Aufgabe', start: 14, duration: 3, planned: 10, color: 'red', lane: 0 },
+          { label: 'Aufgabe', start: 18, duration: 5, planned: 6, color: 'blue', lane: 1 }
+        ]
+      }
+    ];
+  }
+
+  renderDateHeader(days) {
+    return `
+      <div class="resource-grid-row resource-date-row">
+        <div class="resource-row-label">Ressourcen</div>
+        ${days.map(day => `<div class="resource-date-label ${day.isWeekend ? 'is-weekend' : ''}" title="${day.weekday}">${day.label}</div>`).join('')}
+      </div>
+    `;
+  }
+
+  renderResourceGroup(row, days) {
+    const capacity = this.getCapacityValues(row, days);
+    return `
+      <section class="resource-group">
+        <div class="resource-group-title">
+          ${this.escape(row.name)}
+        </div>
+        <div class="resource-grid-row">
+          <div class="resource-row-label">${row.isUnassigned ? 'Bedarf ohne Ressource' : 'Verbleibende Kapazität'}</div>
+          ${capacity.map((value, index) => `
+            <div class="resource-grid-cell ${days[index].isWeekend ? 'is-weekend' : ''} ${value < 0 ? 'is-negative' : ''}">${value}</div>
+          `).join('')}
+        </div>
+        <div class="resource-task-row">
+          <div class="resource-row-label">Aufgaben</div>
+          <div class="resource-task-grid">
+            ${days.map(day => `<div class="resource-task-bg ${day.isWeekend ? 'is-weekend' : ''}"></div>`).join('')}
+          </div>
+          <div class="resource-task-bars">
+            ${row.assignments.map(task => this.renderAssignmentBar(task)).join('')}
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  renderAssignmentBar(task) {
+    return `
+      <div class="resource-task-bar is-${task.color}" style="grid-column:${task.start + 1} / span ${task.duration}; grid-row:${task.lane + 1};" title="${this.escape(task.label)}">
+        ${this.escape(task.label)}
+      </div>
+    `;
+  }
+
+  getCapacityValues(row, days) {
+    return days.map(day => {
+      const load = row.assignments
+        .filter(task => day.index >= task.start && day.index < task.start + task.duration)
+        .reduce((total, task) => total + task.planned, 0);
+      if (row.isUnassigned) return load;
+      return row.baseCapacity - load;
+    });
+  }
+
+  getSummary(rows, days) {
+    const assignedRows = rows.filter(row => !row.isUnassigned);
+    const unassigned = rows.find(row => row.isUnassigned);
+    const overloadedDays = assignedRows.reduce((total, row) => {
+      return total + this.getCapacityValues(row, days).filter(value => value < 0).length;
+    }, 0);
+    const unassignedDemand = unassigned
+      ? this.getCapacityValues(unassigned, days).reduce((total, value) => total + value, 0)
+      : 0;
+    return {
+      resources: assignedRows.length,
+      assignments: rows.reduce((total, row) => total + row.assignments.length, 0),
+      overloadedDays,
+      unassignedDemand
+    };
+  }
+
+  escape(value) {
+    return String(value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;');
+  }
+}
+
+class PipelineView extends Component {
+  render() {
+    const pipeline = this.app.projectStore.getPipeline();
+    return this.htmlToElement(`
+      <main class="content">
+        <section class="view-header">
+          <div class="title-block">
+            <h1>Pipeline</h1>
+            <p>Arbeitsfluss für das Beispielprojekt ${this.app.projectStore.name}.</p>
+          </div>
+        </section>
+        <section class="project-detail-card">
+          <div class="pipeline-board">
+            ${pipeline.map(column => `
+              <section class="pipeline-column">
+                <header>
+                  <strong>${column.name}</strong>
+                  <span class="pipeline-count-pill">${column.cards.length}</span>
+                </header>
+                ${column.cards.map(card => `<div class="pipeline-card">${card}</div>`).join('')}
+              </section>
+            `).join('')}
+          </div>
+        </section>
+      </main>
+    `);
+  }
+}
+
+class ProjectPlaceholderView extends Component {
+  constructor(app, title, description) {
+    super(app);
+    this.title = title;
+    this.description = description;
+  }
+
+  render() {
+    return this.htmlToElement(`
+      <main class="content">
+        <section class="view-header">
+          <div class="title-block">
+            <h1>${this.title}</h1>
+            <p>${this.description}</p>
+          </div>
+        </section>
+        <article class="project-placeholder-card">
+          <span>Projektfunktion</span>
+          <strong>${this.title}</strong>
+          <p>Diese Funktion liegt bewusst links in der Sidebar, weil sie einen direkten Projektbezug hat. Die Detailoberfläche kann im nächsten Schritt ausgearbeitet werden.</p>
+        </article>
+      </main>
+    `);
+  }
+}
+
+class Modal extends Component {
+  open(dateIso = DateService.toISO(this.app.selectedDate)) {
+    const template = document.querySelector('#modal-template');
+    this.element = template.content.firstElementChild.cloneNode(true);
+    this.form = this.element.querySelector('#entry-form');
+    this.dateIso = dateIso;
+
+    this.element.addEventListener('click', event => {
+      if (event.target.matches('[data-modal-close]')) this.close();
+    });
+
+    this.form.addEventListener('submit', event => this.handleSubmit(event));
+    document.body.append(this.element);
+    this.form.elements.title.focus();
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+    const data = new FormData(this.form);
+    this.app.store.addEvent({
+      title: data.get('title').toString().trim(),
+      date: this.dateIso,
+      start: data.get('start').toString(),
+      end: data.get('end').toString(),
+      description: data.get('description').toString().trim()
+    });
+    this.close();
+    this.app.render();
+  }
+
+  close() {
+    if (this.element) this.element.remove();
+    this.element = null;
+  }
+}
+
+class FixPlanApp {
+  constructor(root) {
+    this.root = root;
+    this.store = new EventStore();
+    this.ganttStore = new GanttStore();
+    this.notesStore = new NotesStore();
+    this.projectStore = new DemoProjectStore();
+    this.currentArea = 'project';
+    this.currentView = 'gantt';
+    this.searchQuery = '';
+    this.selectedDate = new Date(2024, 3, 5);
+    this.calendarDate = new Date(2024, 3, 1);
+    this.ganttZoom = 'standard';
+    this.selectedGanttTaskId = this.ganttStore.tasks[0]?.id || null;
+    this.selectedProjectTaskId = this.projectStore.getAssignedTasks()[0]?.id || null;
+    this.projectWidgetsOpen = true;
+    this.modal = new Modal(this);
+  }
+
+  start() {
+    this.render();
+  }
+
+  isPersonalSection() {
+    return this.currentArea === 'personal';
+  }
+
+  setView(view) {
+    const personalViews = ['workspace', 'timesheet', 'timelog', 'calendar', 'profile'];
+    if (personalViews.includes(view)) {
+      this.setPersonalView(view);
+      return;
+    }
+
+    this.setProjectView(view);
+  }
+
+  setPersonalView(view) {
+    this.currentArea = 'personal';
+    this.currentView = view;
+    this.render();
+  }
+
+  setProjectView(view) {
+    this.currentArea = 'project';
+    this.currentView = view;
+    this.render();
+  }
+
+  openPersonalWorkspace() {
+    this.setPersonalView('workspace');
+  }
+
+  openTaskDetail(taskId) {
+    this.selectedProjectTaskId = Number(taskId);
+    this.currentArea = 'project';
+    this.currentView = 'task-detail';
+    this.render();
+  }
+
+  toggleProjectWidgets() {
+    this.projectWidgetsOpen = !this.projectWidgetsOpen;
+    this.renderContentOnly();
+  }
+
+  setSearchQuery(query) {
+    this.searchQuery = query;
+    this.renderContentOnly();
+  }
+
+  changeSelectedDate(amount) {
+    this.selectedDate = DateService.addDays(this.selectedDate, amount);
+    this.calendarDate = new Date(this.selectedDate.getFullYear(), this.selectedDate.getMonth(), 1);
+    this.render();
+  }
+
+  changeCalendarMonth(amount) {
+    this.calendarDate = DateService.addMonths(this.calendarDate, amount);
+    this.render();
+  }
+
+  openModal(dateIso) {
+    this.modal.open(dateIso);
+  }
+
+  render() {
+    this.root.innerHTML = '';
+    this.root.append(new Sidebar(this).render());
+
+    const mainArea = document.createElement('div');
+    mainArea.className = 'main-area';
+    mainArea.append(new TopBar(this).render());
+    mainArea.append(this.createView());
+    this.root.append(mainArea);
+  }
+
+  renderContentOnly() {
+    const content = this.root.querySelector('.content');
+    if (!content) {
+      this.render();
+      return;
+    }
+
+    const newContent = this.createView();
+    content.replaceWith(newContent);
+
+    const topInput = this.root.querySelector('.search-field input');
+    if (topInput) {
+      topInput.value = this.searchQuery;
+      topInput.focus();
+      topInput.setSelectionRange(this.searchQuery.length, this.searchQuery.length);
+    }
+  }
+
+  createView() {
+    if (this.currentArea === 'personal') {
+      if (this.currentView === 'workspace') return new WorkspaceView(this).render();
+      if (this.currentView === 'calendar') return new CalendarView(this).render();
+      if (this.currentView === 'timesheet') return new TimeSheetView(this).render();
+      if (this.currentView === 'profile') return new ProfileView(this).render();
+      return new TimeLogView(this).render();
+    }
+
+    if (this.currentView === 'projects') return new ProjectListView(this).render();
+    if (this.currentView === 'tasks') return new TaskListProjectView(this).render();
+    if (this.currentView === 'task-detail') return new TaskDetailView(this).render();
+    if (this.currentView === 'gantt') return new GanttView(this).render();
+    if (this.currentView === 'resources') return new ResourcePlanView(this).render();
+    if (this.currentView === 'pipeline') return new PipelineView(this).render();
+    return new TaskListProjectView(this).render();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const root = document.querySelector('#app');
+  new FixPlanApp(root).start();
+});
+
+  </script>
+</body>
+</html>
